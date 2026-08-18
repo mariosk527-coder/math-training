@@ -92,8 +92,8 @@ function makeQuestion() {
     document.getElementById("answer").value = "";
     const questionkinds = Math.floor(Math.random() * 4) +1;
     if(questionkinds==1){
-        const questionB = Math.floor(Math.random() * 101) - 50;
-        const questionA = Math.floor(Math.random() * 101) - 50;
+        const questionB = Math.floor(Math.random() * 51);
+        const questionA = Math.floor(Math.random() * 51);
         const answer = questionA + questionB;
 
         correctAnswer = answer;
@@ -106,8 +106,8 @@ function makeQuestion() {
             "　　(" + questionA + ")" + " +( " + questionB + " )= ?";
     }
     if(questionkinds==2){
-        const questionB = Math.floor(Math.random() * 101) - 50;
-        const questionA = Math.floor(Math.random() * 101) - 50;
+        const questionB = Math.floor(Math.random() * 51) ;
+        const questionA = Math.floor(Math.random() * 51) ;
         const answer = questionA - questionB;
 
         correctAnswer = answer;
@@ -120,8 +120,8 @@ function makeQuestion() {
             "　　(" + questionA + ")" + " -( " + questionB + " )= ?";
     }
     if(questionkinds==3){
-        const answera = Math.floor(Math.random() * 21) - 10;
-        const answerb = Math.floor(Math.random() * 21) -10;
+        const answera = Math.floor(Math.random() * 11) ;
+        const answerb = Math.floor(Math.random() * 11) ;
         const answer = answera * answerb;
         const questionA = answera;
         const questionB = answerb;
@@ -136,8 +136,8 @@ function makeQuestion() {
             "　　(" + questionA + ")" + " ×( " + questionB + " )= ?";
     }
     if(questionkinds==4){
-        const answera = Math.floor(Math.random() * 21) - 10;
-        const answerb = Math.floor(Math.random() * 21) -10;
+        const answera = Math.floor(Math.random() * 11) ;
+        const answerb = Math.floor(Math.random() * 11) ;
         if(answera==0){answerb=1;} 
         if(answerb==0){answerb=1;} 
         const answerc = answera * answerb;
