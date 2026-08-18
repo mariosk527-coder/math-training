@@ -92,8 +92,8 @@ function makeQuestion() {
     document.getElementById("answer").value = "";
     const questionkinds = Math.floor(Math.random() * 4) +1;
     if(questionkinds==1){
-        const questionB = Math.floor(Math.random() * 51);
-        const questionA = Math.floor(Math.random() * 51);
+        const questionB = Math.floor(Math.random() * 50)+1;
+        const questionA = Math.floor(Math.random() * 50)+1;
         const answer = questionA + questionB;
 
         correctAnswer = answer;
