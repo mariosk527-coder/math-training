@@ -1,0 +1,248 @@
+<p id="result"></p>
+
+<input id="answer" type="number">
+
+<button id="checkstrat_ease" onclick="checkstrat_ease()">整数計算問題</button>
+<button id="checkstrat_hrad" onclick="checkstrat_hrad()">正負の計算問題</button>
+<button id="checkreset" onclick="checkreset()">回答分析のリセット</button>
+
+<div id="buttons">
+
+    <button id="checkAnswer" onclick="checkAnswer()">回答</button>
+
+    <button id="checkback" onclick="checkback()">戻る</button>
+
+</div>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+
+body {
+    text-align: center;
+}
+
+#answer {
+    display: block;
+    margin: 20px auto;
+    font-size: 30px;
+    width: 200px;
+    height: 50px;
+    box-sizing: border-box;
+    margin-top: 200px;
+}
+
+#checkstrat_ease {
+    margin-top: 10px;
+    display: block;
+    margin: 20px auto;
+    font-size: 30px;
+}
+
+#checkstrat_hrad {
+    margin-top: 10px;
+    display: block;
+    margin: 20px auto;
+    font-size: 30px;
+}
+
+#checkreset {
+    margin-top: 10px;
+    display: block;
+    margin: 20px auto;
+    font-size: 20px;
+}
+
+#buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#buttons button {
+    font-size: 30px;
+    padding: 10px 25px;
+}
+
+#result {
+    font-size: 30px;
+    white-space: pre-line;
+}
+
+
+</style>
+<script>
+
+let questionnumber = [0,0,0,0];
+
+let questionCount = 1;
+let correctAnswer;
+let answerlist = [0,0,0,0];
+let answer_misu = [0,0,0];
+let answerCount = 1;
+
+// 待機
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function reset(resetmoed){
+    document.getElementById("result").textContent = ""
+    questionCount = 1;
+    if(resetmoed==1){answerlist = [0,0,0,0];}
+}
+
+function stratdisplay(){
+    document.getElementById("checkAnswer").style.display = "none";
+    document.getElementById("checkback").style.display = "none";
+    document.getElementById("answer").style.display = "none";
+    document.getElementById("checkstrat_ease").style.display = "block";
+    document.getElementById("checkstrat_hrad").style.display = "block";
+    document.getElementById("checkreset").style.display = "block";
+}
+
+function questiondisplay(){
+    document.getElementById("checkstrat_ease").style.display = "none";
+    document.getElementById("checkstrat_hrad").style.display = "none";
+    document.getElementById("checkreset").style.display = "none";
+    document.getElementById("answer").style.display = "block";
+    document.getElementById("checkAnswer").style.display = "block";
+    document.getElementById("checkback").style.display = "block";
+}
+
+// 問題を作る
+function makeQuestion() {
+    document.getElementById("answer").value = "";
+    const questionkinds = Math.floor(Math.random() * 4) +1;
+    if(questionkinds==1){
+        const questionB = Math.floor(Math.random() * questionnumber[0]) +questionnumber[1];
+        const questionA = Math.floor(Math.random() * questionnumber[0]) +questionnumber[1];
+        const answer = questionA + questionB;
+
+        correctAnswer = answer;
+
+        answer_misu[0] = questionB - questionA;
+        answer_misu[1] = -questionB - questionA;
+        answer_misu[2] = -questionB + questionA;
+
+        document.getElementById("result").textContent = "問題" + questionCount +
+            "　　(" + questionA + ")" + " +( " + questionB + " )= ?";
+    }
+    if(questionkinds==2){
+        const questionB = Math.floor(Math.random() * questionnumber[0]) +questionnumber[1];
+        const questionA = Math.floor(Math.random() * questionnumber[0]) +questionnumber[1];
+        const answer = questionA - questionB;
+
+        correctAnswer = answer;
+
+        answer_misu[0] = questionA + questionB;
+        answer_misu[1] = -questionA - questionB;
+        answer_misu[2] = -questionA + questionB;
+
+        document.getElementById("result").textContent = "問題" + questionCount +
+            "　　(" + questionA + ")" + " -( " + questionB + " )= ?";
+    }
+    if(questionkinds==3){
+        const answera = Math.floor(Math.random() * questionnumber[2]) +questionnumber[3];
+        const answerb = Math.floor(Math.random() * questionnumber[2]) +questionnumber[3];
+        const answer = answera * answerb;
+        const questionA = answera;
+        const questionB = answerb;
+
+        correctAnswer = answer;
+
+        answer_misu[0] = -answera * answerb;
+        answer_misu[1] = -answera * -answerb;
+        answer_misu[2] = answera * -answerb;
+ 
+        document.getElementById("result").textContent = "問題" + questionCount  +
+            "　　(" + questionA + ")" + " ×( " + questionB + " )= ?";
+    }
+    if(questionkinds==4){
+        const answera = Math.floor(Math.random() * questionnumber[2]) +questionnumber[3];
+        const answerb = Math.floor(Math.random() * questionnumber[2]) +questionnumber[3];
+        if(answera==0){answerb=1;} 
+        if(answerb==0){answerb=1;} 
+        const answerc = answera * answerb;
+        const answer = answerc / answera;
+        const questionA = answerc;
+        const questionB = answera;
+
+        answer_misu[0] = -answerc / answera;
+        answer_misu[1] = -answerc / -answera;
+        answer_misu[2] = answerc / -answera;
+
+        correctAnswer = answer;
+
+        document.getElementById("result").textContent = "問題" + questionCount  +
+            "　　(" + questionA + ")" + " ÷( " + questionB + " )= ?";
+    }
+}
+
+async function checkstrat_ease(){
+    answerCount = 0;
+    questionnumber = [50,1,10,1];
+    questiondisplay();
+    makeQuestion();
+}
+
+async function checkstrat_hrad(){
+    answerCount = 0;
+    questionnumber = [101,-50,21,-10];
+    questiondisplay();
+    makeQuestion();
+}
+
+// 回答
+async function checkAnswer() {
+    if(answerCount==0){
+        answerCount = 1;
+        const userAnswer =
+            Number(document.getElementById("answer").value);
+
+        if (userAnswer === correctAnswer) {
+            document.getElementById("result").textContent =
+                "正解！";
+            answerlist[0] += 1;
+        } else {
+            document.getElementById("result").textContent =
+                "不正解　正解は" + correctAnswer;
+            answerlist[1] += 1;
+            if(userAnswer == answer_misu[0] || userAnswer == answer_misu[1] || userAnswer == answer_misu[2]){answerlist[2]+=1;}
+            else{answerlist[3]+=1;}
+        }
+
+        await sleep(1000);
+        document.getElementById("result").textContent =
+        "次の問題まで 2";
+
+        await sleep(1000);
+
+        document.getElementById("result").textContent =
+            "次の問題まで 1";
+
+        await sleep(1000);
+        if (questionCount < 5) {
+            questionCount++;
+            makeQuestion();
+            answerCount = 0;
+        } else {
+            document.getElementById("result").textContent=
+                "終了！" + "\n"+"　正解数_"+ answerlist[0] + "\n" +"　不正解数_"+ answerlist[1] + "\n"+ "　四則演算のミス"+answerlist[3] + "\n" + "　符号ミス"+answerlist[2];
+        }
+    }
+}
+async function checkback() {
+    reset(0);
+    stratdisplay();
+    answerCount = 0;
+}
+
+async function checkreset() {
+    reset(1);
+}
+
+// 最初の問題
+stratdisplay();
+
+</script>
