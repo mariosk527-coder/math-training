@@ -1,9 +1,11 @@
 <p id="result"></p>
+<div id="図形"></div>
 
 <input id="answer" type="number">
 <div id="stratbuttons">
     <button id="checkstrat_ease" onclick="checkstrat_ease()">整数計算問題</button>
     <button id="checkstrat_hrad" onclick="checkstrat_hrad()">正負の計算問題</button>
+    <button id="checkstrat_Shape" onclick="checkstrat_Shape()">簡単な図形の問題</button>
     <button id="checkstrat_easeB" onclick="checkstrat_easeB()">一次関数</button>
     <button id="checkanalysis" onclick="checkanalysis()">正解率の表示</button>
     <button id="checkreset" onclick="checkreset()">回答分析のリセット</button>
@@ -78,6 +80,7 @@ let answerCount = 1;
 let answerstatistics = [
     [0,0],
     [0,0],
+    [0,0],
     [0,0]
 ];
 
@@ -107,6 +110,7 @@ function reset(resetmoed){
     if(resetmoed==1){
         answerlist = [0,0,0,0];
         answerstatistics = [
+            [0,0],
             [0,0],
             [0,0],
             [0,0]
@@ -178,6 +182,81 @@ function makeQuestionC(randN) {
     else{questioncharacter="";}
     document.getElementById("result").textContent = "問題　" + questionCount +
         "　　一次関数y=" + questionB + "x" +questioncharacter+ questionC +"において"+"y="+questionA +"の時xの値を求めよ";
+}
+
+function makeQuestionD(){
+    const base = Math.floor(Math.random() * 10) + 1;
+    const height = Math.floor(Math.random() * 10) + 1;
+
+    let answer = base * height / 2;
+    correctAnswer = answer;
+
+    document.getElementById("result").textContent =
+        "底辺 " + base + "cm、高さ " + height + "cm の三角形の面積は？";
+
+    document.getElementById("図形").innerHTML = `
+    <svg width="300" height="200">
+
+        <polygon
+            points="50,150 250,150 150,50"
+            fill="none"
+            stroke="black"
+            stroke-width="3"
+        />
+
+        <line
+            x1="150"
+            y1="50"
+            x2="150"
+            y2="150"
+            stroke="black"
+            stroke-width="3"
+        />
+
+        <text x="135" y="175" font-size="18">
+            ${base}cm
+        </text>
+
+        <text x="155" y="105" font-size="18">
+            ${height}cm
+        </text>
+
+    </svg>
+`;
+}
+
+function makeQuestionD2(){
+    const base = Math.floor(Math.random() * 6) + 4;
+    const height = Math.floor(Math.random() * 6) + 4;
+
+    const answer = base * height ;
+    correctAnswer = answer;
+
+    const cm = [base*10,height*10]
+
+    document.getElementById("result").textContent =
+        "底辺 " + base + "cm、高さ " + height + "cm の四角形の面積は？";
+
+    document.getElementById("図形").innerHTML = `
+    <svg width="300" height="200">
+
+        <polygon
+            points="50,50 ${50+cm[0]},50 ${50+cm[0]},${50+cm[1]} 50,${50+cm[1]}"
+            fill="none"
+            stroke="black"
+            stroke-width="3"
+        />
+
+        <text x="${30+cm[0]/2}" y="${65+cm[1]}" font-size="18">
+            ${base}cm
+        </text>
+
+        <text x="${60+cm[0]}" y="${50+cm[1]/2}" font-size="18">
+            ${height}cm
+        </text>
+
+    </svg>
+`;
 }
 
 // 問題を作る
@@ -252,6 +331,10 @@ function makeQuestion(mode) {
         if(Math.floor(Math.random() * 2)==0){makeQuestionB(Math.floor(Math.random() * 9) );}
         else{makeQuestionC(Math.floor(Math.random() * 9) );}
     }
+    if(mode==4){
+        if(Math.floor(Math.random() * 2)==0){makeQuestionD();}
+        else{makeQuestionD2();}
+    }
 }
 
 async function checkstrat_ease(){
@@ -270,6 +353,13 @@ async function checkstrat_hrad(){
     makeQuestion(questionmode);
 }
 
+async function checkstrat_Shape() {
+    answerCount = 0;
+    questionmode=4;
+    questiondisplay();
+    makeQuestion(questionmode);
+}
+
 async function checkstrat_easeB(){
     answerCount = 0;
     questionnumber = [0,0,0,0];
@@ -283,7 +373,8 @@ async function checkanalysis() {
     document.getElementById("result").textContent=
     "四則演算の正解率"+answerstatistics[0][0]+"/"+answerstatistics[0][1]+"\n"
     +"正負の計算の正解率"+answerstatistics[1][0]+"/"+answerstatistics[1][1]+"\n"
-     +"一次関数の正解率"+answerstatistics[2][0]+"/"+answerstatistics[2][1];
+    +"一次関数の正解率"+answerstatistics[2][0]+"/"+answerstatistics[2][1]+"\n"
+    +"簡単な図形の正解率"+answerstatistics[3][0]+"/"+answerstatistics[3][1];
 }
 
 // 回答
@@ -326,6 +417,7 @@ async function checkAnswer() {
             "次の問題まで 1";
 
         await sleep(1000);
+        document.getElementById("図形").innerHTML="";
         if (questionCount < 5) {
             questionCount++;
             makeQuestion(questionmode);
@@ -342,6 +434,7 @@ async function checkback() {
     stratdisplay();
     answerCount = 0;
     document.getElementById("result").textContent="";
+    document.getElementById("図形").innerHTML="";
 }
 
 async function checkreset() {
