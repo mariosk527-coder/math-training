@@ -634,7 +634,7 @@ async function answerB(userAnswer){
 
 // 回答
 async function checkAnswer() {
-    if(answerCount===0){
+    if(answerCount==0){
         answerCount = 1;
         const userAnswer =
             document.getElementById("answer").value;
@@ -642,7 +642,7 @@ async function checkAnswer() {
         if(questionmode<=4){
             answerA(userAnswer);
             }
-        else if(questionmode===5){
+        else if(questionmode==5){
             answerB(userAnswer);
             }
         await sleep(1000);
