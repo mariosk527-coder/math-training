@@ -590,7 +590,7 @@ async function checkanalysis() {
 }
 
 async function answerA(userAnswer){
-    if (userAnswer === correctAnswer) {
+    if (userAnswer == correctAnswer) {
         document.getElementById("result").textContent =
             "正解！";
         answerlist[0] += 1;
@@ -616,7 +616,7 @@ async function answerA(userAnswer){
 
 async function answerB(userAnswer){
     userAnswerwords = userAnswer.split(" ");
-    if (userAnswerwords[0] === answerX && userAnswerwords[1] === answerY) {
+    if (userAnswerwords[0] == answerX && userAnswerwords[1] == answerY) {
         document.getElementById("result").textContent =
             "正解！";
         answerlist[0] += 1;
