@@ -590,6 +590,7 @@ async function checkanalysis() {
 }
 
 async function answerA(userAnswer){
+    userAnswer = Number(userAnswer);
     if (userAnswer == correctAnswer) {
         document.getElementById("result").textContent =
             "正解！";
@@ -616,6 +617,9 @@ async function answerA(userAnswer){
 
 async function answerB(userAnswer){
     userAnswerwords = userAnswer.split(" ");
+    userAnswerwords[0] = Number(userAnswerwords[0]);
+    userAnswerwords[1] = Number(userAnswerwords[1]);
+
     if (userAnswerwords[0] == answerX && userAnswerwords[1] == answerY) {
         document.getElementById("result").textContent =
             "正解！";
@@ -634,7 +638,7 @@ async function answerB(userAnswer){
 
 // 回答
 async function checkAnswer() {
-    if(answerCount==0){
+    if(answerCount===0){
         answerCount = 1;
         const userAnswer =
             document.getElementById("answer").value;
@@ -642,7 +646,7 @@ async function checkAnswer() {
         if(questionmode<=4){
             answerA(userAnswer);
             }
-        else if(questionmode==5){
+        else if(questionmode===5){
             answerB(userAnswer);
             }
         await sleep(1000);
