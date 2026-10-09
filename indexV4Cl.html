@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>計算練習</title>
+<style>
+body { text-align: center; }
+
+#answer {
+    display: block;
+    margin: 20px auto;
+    font-size: 30px;
+    width: 200px;
+    height: 50px;
+    box-sizing: border-box;
+    margin-top: 200px;
+}
+
+#menu, #mode1, #mode2, #mode3, #mode4 { text-align: center; }
+
+#menu button, #mode1 button, #mode2 button, #mode3 button, #mode4 button {
+    display: block;
+    margin: 10px auto;
+    width: 300px;
+    font-size: 25px;
+    padding: 10px 20px;
+}
+
+#buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#buttons button {
+    font-size: 30px;
+    padding: 10px 25px;
+}
+
+#memo { display: none; margin: 20px auto; max-width: 600px; text-align: center; }
+#memo button { font-size: 18px; padding: 6px 12px; margin: 2px; }
+#memo button.active { font-weight: bold; background: #cde; }
+#memoCanvas { width: 100%; max-width: 600px; height: auto; border: 2px solid #888; background: #fff; touch-action: none; }
+#memoText { display: none; width: 100%; max-width: 600px; box-sizing: border-box; font-size: 20px; }
+
+#timer { display: none; font-size: 22px; color: #555; margin: 4px 0; }
+
+#analysis { display: none; max-width: 640px; margin: 10px auto; text-align: left; font-size: 20px; padding: 0 10px; }
+#analysis table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+#analysis td { padding: 4px 6px; border-bottom: 1px solid #ddd; }
+#analysis td.n { text-align: right; white-space: nowrap; width: 1%; }
+#analysis td.mis { font-size: 16px; color: #a33; padding-left: 24px; }
+#analysis .sub { font-size: 14px; color: #666; }
+#analysis .advice { background: #fff6dd; padding: 8px 12px; border-radius: 6px; }
+#analysis button { font-size: 20px; padding: 6px 16px; }
+
+#result {
+    font-size: 30px;
+    white-space: pre-line;
+}
+</style>
+</head>
+<body>
+
+<p id="result"></p>
+<div id="timer"></div>
+<div id="図形"></div>
+<div id="analysis"></div>
+
+<input id="answer" type="text" inputmode="decimal" autocomplete="off">
+
+<div id="menu">
+    <button onclick="checkstrat_mode1()">基礎計算</button>
+    <button onclick="checkstrat_mode2()">図形計算</button>
+    <button onclick="checkstrat_mode3()">高次計算</button>
+    <button onclick="checkstrat_mode4()">論理的計算</button>
+    <button onclick="checkanalysis()">正解率の表示</button>
+    <button onclick="checkreset()">回答分析のリセット</button>
+</div>
+
+<div id="mode1">
+    <button onclick="startUnit(30)">二桁の足し引き</button>
+    <button onclick="startUnit(31)">九九</button>
+    <button onclick="startUnit(32)">二桁のかけ割</button>
+    <button onclick="checkstrat_easeC()">数直線</button>
+    <button onclick="checkstrat_hrad()">正負の計算</button>
+    <button onclick="startTimeAttack()">正負の2桁 タイムアタック（20問）</button>
+    <button onclick="startUnit(14)">平方根</button>
+    <button onclick="startUnit(15)">一次方程式・文字式</button>
+    <button onclick="checkstrat_easeB()">一次関数</button>
+    <button onclick="checkback2()">戻る</button>
+</div>
+
+<div id="mode2">
+    <button onclick="checkstrat_Shape()">簡単な図形</button>
+    <button onclick="startUnit(20)">角度</button>
+    <button onclick="startUnit(18)">円とおうぎ形</button>
+    <button onclick="startUnit(19)">立体の体積・表面積</button>
+    <button onclick="startUnit(17)">三平方の定理</button>
+    <button onclick="checkstrat_Shape2()">三角比</button>
+    <button onclick="startUnit(25)">正弦定理・余弦定理</button>
+    <button onclick="checkstrat_Shape3()">ベクトル</button>
+    <button onclick="startUnit(27)">図形と方程式</button>
+    <button onclick="startUnit(29)">弧度法と三角関数</button>
+    <button onclick="checkback2()">戻る</button>
+</div>
+
+<div id="mode3">
+    <button onclick="checkstrat_easeB2()">二次関数</button>
+    <button onclick="startUnit(16)">二次方程式</button>
+    <button onclick="checkstrat_Simultaneous()">連立方程式</button>
+    <button onclick="checkstrat_easeB3()">因数分解</button>
+    <button onclick="checkstrat_easeB4()">展開</button>
+    <button onclick="checkstrat_easeB5()">平方完成</button>
+    <button onclick="startUnit(28)">不等式</button>
+    <button onclick="startUnit(24)">指数・対数</button>
+    <button onclick="startUnit(23)">数列</button>
+    <button onclick="startUnit(26)">微分・積分</button>
+    <button onclick="checkback2()">戻る</button>
+</div>
+
+<div id="mode4">
+    <button onclick="checkstrat_easeD1()">集合と命題</button>
+    <button onclick="startUnit(21)">場合の数と確率</button>
+    <button onclick="startUnit(22)">資料の整理とデータ分析</button>
+    <button onclick="checkback2()">戻る</button>
+</div>
+
+<div id="buttons">
+    <button id="checkAnswer" onclick="checkAnswer()">回答</button>
+    <button id="checkback" onclick="checkback()">戻る</button>
+</div>
+
+<div id="memo">
+    <div>
+        <button id="memoBtnDraw" onclick="memoSwitch('draw')">手書き</button>
+        <button id="memoBtnText" onclick="memoSwitch('text')">テキスト</button>
+        <span id="memoTools">
+            <button id="memoBtnPen" onclick="memoSetTool('pen')">ペン</button>
+            <button id="memoBtnEraser" onclick="memoSetTool('eraser')">消しゴム</button>
+        </span>
+        <button onclick="memoClear()">全部消す</button>
+    </div>
+    <canvas id="memoCanvas" width="900" height="450"></canvas>
+    <textarea id="memoText" rows="8" placeholder="ここに計算メモを書けます"></textarea>
+</div>
+
+<script>
+// questionmode: 1=整数計算 2=正負の計算 3=一次関数 4=簡単な図形 5=連立方程式 6=三角比
+//   7=数直線 8=ベクトル 9=二次関数 10=因数分解 11=展開 12=平方完成 13=集合と命題
+//   14=平方根 15=一次方程式 16=二次方程式 17=三平方 18=円とおうぎ形 19=立体 20=角度 21=場合の数と確率
+//   22=データ分析 23=数列 24=指数・対数 25=正弦・余弦定理 26=微分・積分 27=図形と方程式 28=不等式 29=弧度法と三角関数
+let answerX = 0;
+let answerY = 0;
+let eq = [0, 0, 0, 0, 0, 0];      // 連立方程式の係数 [a,b,c,d,e,f]
+let questionnumber = [0, 0, 0, 0];
+let questionmode = 1;
+let questionCount = 1;
+let correctAnswer;
+let correctVec = null;       // 複数の数で答える問題の正解（配列）
+let correctExpr = null;      // √や分数を含む式で答える問題の正解（文字列）
+let exprStrict = false;      // true: 簡単な形（有理化・√の中を最小）で答えないと不正解
+let answerlist = new Array(15).fill(0);
+let answer_misu = [];
+let answerCount = 1;
+let sessionId = 0;                 // 「戻る」後に古い処理が動かないようにするための番号
+const MODE_COUNT = 33;
+let answerstatistics = newStatistics();
+let misList = [];                         // 想定される間違いと、その間違え方の説明
+let vecNames = [];                        // 複数の数で答える問題の、各値の名前
+let sessionMistakes = {};                 // 今回のセット内の間違え方の集計
+let mistakeStats = newMistakeStats();     // 単元ごとの間違え方の集計
+const TA_COUNT = 20;                      // タイムアタックの問題数
+let taStart = 0, taTimerId = null, taLog = [], taCorrect = 0, taFlash = "", taBest = null;
+
+function newMistakeStats() {
+    return Array.from({ length: MODE_COUNT }, () => ({}));
+}
+
+function newStatistics() {
+    return Array.from({ length: MODE_COUNT }, () => [0, 0]);
+}
+
+// y=ax+b  [y, a, x, b]
+const questioneaseB = [
+    [13, 4, 4, -3],
+    [-9, -6, 6, 27],
+    [-10, -4, -4, -26],
+    [-23, -3, 4, -11],
+    [-33, 7, -3, 12],
+    [-16, -1, 18, 2],
+    [14, -1, -16, -2],
+    [-14, 3, -9, 13],
+    [19, 12, 1, 7]
+];
+
+// 連立方程式 [a, b, (c), d, e, (f), x, y]
+// c と f は x,y から自動計算するので、ここの値は使われない
+const questioneaseE = [
+    [2, 3, 13, 4, -1, 5, 2, 3],
+    [1, 2, 8, 3, -1, 9, 4, 2],
+    [3, 2, 16, 1, -2, -1, 4, 2],
+    [2, -1, 7, 3, 2, 14, 3, -1],
+    [1, 3, 11, 2, -1, 1, 2, 3],
+
+    [3, 1, 10, 2, 3, 13, 2, 4],
+    [2, 5, 19, 4, -1, 6, 2, 3],
+    [1, -2, -4, 3, 1, 11, 3, 4],
+    [4, 1, 13, 2, -3, 1, 2, 5],
+    [2, 3, 12, 1, -2, -4, 2, 2],
+
+    [3, -2, 5, 1, 4, 11, 3, 2],
+    [1, 4, 14, 2, -1, 1, 2, 3],
+    [2, -3, -1, 3, 1, 11, 2, 1],
+    [5, 2, 19, 1, -1, 1, 3, 2],
+    [1, 2, 1, 4, -1, 13, 3, -1],
+
+    [2, -1, 9, 3, 2, 16, 3, -3],
+    [3, 4, 18, 2, -1, 9, 2, 3],
+    [1, -3, 7, 2, 1, 8, 5, -2],
+    [4, -2, 10, 1, 3, 11, 2, -1],
+    [2, 1, 9, 3, -2, 4, 2, 5]
+];
+
+// 三角比 [問題文, 回答]
+const questioneaseF = [
+    ["直角三角形ABCで、∠C=90°、AB=5、BC=3のとき、sin Aを求めよ", "3/5"],
+    ["直角三角形ABCで、∠C=90°、AB=5、AC=4のとき、cos Aを求めよ", "4/5"],
+    ["直角三角形ABCで、∠C=90°、AC=4、BC=3のとき、tan Aを求めよ", "3/4"],
+    ["sin 30°の値を求めよ", "1/2"],
+    ["cos 60°の値を求めよ", "1/2"],
+    ["tan 45°の値を求めよ", "1"],
+    ["sin 45°の値を求めよ", "√2/2"],
+    ["cos 45°の値を求めよ", "√2/2"],
+    ["tan 30°の値を求めよ", "1/√3"],
+    ["tan 60°の値を求めよ", "√3"],
+    ["sin 60°の値を求めよ", "√3/2"],
+    ["cos 30°の値を求めよ", "√3/2"],
+    ["sin 0°の値を求めよ", "0"],
+    ["cos 0°の値を求めよ", "1"],
+    ["tan 0°の値を求めよ", "0"],
+    ["sin 90°の値を求めよ", "1"],
+    ["cos 90°の値を求めよ", "0"],
+    ["tan 90°の値は定義できるか答えよ", "定義できない"]
+];
+
+// 三角比で「同じ意味」として許す別表記
+const alternativeAnswersF = {
+    "√2/2": ["1/√2"],
+    "1/√3": ["√3/3"],
+    "定義できない": ["できない", "定義不可", "定義できません"]
+};
+
+// ---------- 共通ユーティリティ ----------
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function show(id, display) {
+    document.getElementById(id).style.display = display;
+}
+
+function setResult(text) {
+    document.getElementById("result").textContent = text;
+}
+
+// 全角数字・全角記号を半角に(数値入力用)
+function normalizeNumberText(s) {
+    return String(s)
+        .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+        .replace(/[−ー―‐－]/g, "-")
+        .replace(/＋/g, "+")
+        .replace(/／/g, "/")
+        .replace(/．/g, ".")
+        .replace(/[，、]/g, ",")
+        .replace(/　/g, " ")
+        .trim();
+}
+
+// "3/5" や "0.6" を数値に。変換できなければ null
+function tryParseNumber(s) {
+    s = s.replace(/\s/g, "");
+    if (/^[+-]?\d+(\.\d+)?$/.test(s)) return Number(s);
+    const m = s.match(/^([+-]?\d+(?:\.\d+)?)\/(\d+(?:\.\d+)?)$/);
+    if (m && Number(m[2]) !== 0) return Number(m[1]) / Number(m[2]);
+    return null;
+}
+
+function nearlyEqual(a, b) {
+    return Math.abs(a - b) < 1e-9;
+}
+
+function randInt(n) {
+    return Math.floor(Math.random() * n);
+}
+
+// ---------- 画面の切り替え ----------
+function reset(resetmoed) {
+    setResult("");
+    questionCount = 1;
+    if (resetmoed == 1) {
+        answerlist = new Array(15).fill(0);
+        answerstatistics = newStatistics();
+        mistakeStats = newMistakeStats();
+    }
+}
+
+function stratdisplay() {
+    stopTimer();
+    ["mode1", "mode2", "mode3", "mode4", "checkAnswer", "checkback", "answer", "memo", "analysis"]
+        .forEach(id => show(id, "none"));
+    show("menu", "block");
+}
+
+function openSubmenu(id) {
+    ["mode1", "mode2", "mode3", "mode4", "checkAnswer", "checkback", "answer", "menu", "memo", "analysis"]
+        .forEach(x => show(x, "none"));
+    show(id, "block");
+}
+
+function checkstrat_mode1() { openSubmenu("mode1"); }
+function checkstrat_mode2() { openSubmenu("mode2"); }
+function checkstrat_mode3() { openSubmenu("mode3"); }
+function checkstrat_mode4() { openSubmenu("mode4"); }
+
+function analysisdisplay() {
+    ["mode1", "mode2", "mode3", "mode4", "checkAnswer", "answer", "menu", "memo"]
+        .forEach(id => show(id, "none"));
+    show("checkback", "block");
+    show("analysis", "block");
+}
+
+function questiondisplay() {
+    ["mode1", "mode2", "mode3", "mode4", "menu", "analysis"].forEach(id => show(id, "none"));
+    show("answer", "block");
+    show("checkAnswer", "block");
+    show("checkback", "block");
+    show("memo", "block");
+}
+
+// ---------- 問題の作成 ----------
+function makeQuestionB(randN) {
+    const a = questioneaseB[randN][1];
+    const x = questioneaseB[randN][2];
+    const b = questioneaseB[randN][3];
+
+    correctAnswer = questioneaseB[randN][0];
+
+    mis(a + b + x, "x に傾きを掛けず、すべて足している（y=ax+b の a×x を計算していない）");
+    mis(b + x, "傾き a を掛け忘れている");
+    mis(a * (b + x), "切片 b にも傾きを掛けている（a(x+b) にしている）");
+    mis(a * b, "傾きと切片を掛けている（x を使っていない）");
+    mis(a * x - b, "切片 b の符号ミス");
+    mis(Math.abs(a) * x + b, "傾き a の符号を落としている");
+    const sign = b > -1 ? "+" : "";
+    setResult("問題　" + questionCount +
+        "　　一次関数y=" + a + "x" + sign + b + "において" + "x=" + x + "の時yの値を求めよ");
+}
+
+function makeQuestionC(randN) {
+    const y = questioneaseB[randN][0];
+    const a = questioneaseB[randN][1];
+    const b = questioneaseB[randN][3];
+
+    correctAnswer = questioneaseB[randN][2];
+
+    mis((y + b) / a, "切片 b の移項で符号を変えていない（y−b ではなく y+b）");
+    mis(y - b, "傾き a で割り忘れている");
+    mis(a / (y - b), "割り算の分子と分母を逆にしている");
+    mis((y - b) * a, "a で割らずに掛けている");
+    const sign = b > -1 ? "+" : "";
+    setResult("問題　" + questionCount +
+        "　　一次関数y=" + a + "x" + sign + b + "において" + "y=" + y + "の時xの値を求めよ");
+}
+
+function makeQuestionD() {
+    const base = randInt(10) + 1;
+    const height = randInt(10) + 1;
+
+    correctAnswer = base * height / 2;
+    mis(base * height, "÷2 を忘れている（三角形の面積=底辺×高さ÷2）");
+    mis(base + height, "底辺と高さを足している（掛け算にする）");
+
+    setResult("底辺 " + base + "cm、高さ " + height + "cm の三角形の面積は？");
+
+    document.getElementById("図形").innerHTML = `
+    <svg width="300" height="200">
+        <polygon points="50,150 250,150 150,50" fill="none" stroke="black" stroke-width="3" />
+        <line x1="150" y1="50" x2="150" y2="150" stroke="black" stroke-width="3" />
+        <text x="135" y="175" font-size="18">${base}cm</text>
+        <text x="155" y="105" font-size="18">${height}cm</text>
+    </svg>`;
+}
+
+function makeQuestionD2() {
+    const base = randInt(6) + 4;
+    const height = randInt(6) + 4;
+
+    correctAnswer = base * height;
+    mis((base + height) * 2, "周の長さと面積を混同している");
+    mis(base * height / 2, "÷2 をつけている（三角形の公式と混同）");
+
+    const cm = [base * 10, height * 10];
+
+    setResult("底辺 " + base + "cm、高さ " + height + "cm の四角形の面積は？");
+
+    document.getElementById("図形").innerHTML = `
+    <svg width="300" height="200">
+        <polygon points="50,50 ${50 + cm[0]},50 ${50 + cm[0]},${50 + cm[1]} 50,${50 + cm[1]}"
+            fill="none" stroke="black" stroke-width="3" />
+        <text x="${30 + cm[0] / 2}" y="${65 + cm[1]}" font-size="18">${base}cm</text>
+        <text x="${60 + cm[0]}" y="${50 + cm[1] / 2}" font-size="18">${height}cm</text>
+    </svg>`;
+}
+
+// 連立方程式
+function leadCoef(n) {
+    if (n === 1) return "";
+    if (n === -1) return "-";
+    return String(n);
+}
+function absCoef(n) {
+    return Math.abs(n) === 1 ? "" : String(Math.abs(n));
+}
+
+function makeQuestionE(randN) {
+    const row = questioneaseE[randN];
+    const a = row[0], b = row[1], d = row[3], e = row[4];
+    answerX = row[6];
+    answerY = row[7];
+    // 解から c, f を計算して、必ず式と答えが一致するようにする
+    const c = a * answerX + b * answerY;
+    const f = d * answerX + e * answerY;
+    eq = [a, b, c, d, e, f];
+
+    setResult("以下の一次連立方程式を解け（答えは「x y」の順にスペース区切り）\n" +
+        leadCoef(a) + "x" + (b < 0 ? "-" : "+") + absCoef(b) + "y=" + c + "\n" +
+        leadCoef(d) + "x" + (e < 0 ? "-" : "+") + absCoef(e) + "y=" + f);
+}
+
+// 三角比
+function makeQuestionF(randN) {
+    correctAnswer = questioneaseF[randN][1];
+    if (parseExpr(correctAnswer)) setExpr(correctAnswer, false);
+    if (randN === 0) { misExpr("4/5", "cosA と取り違えている（隣辺/斜辺）"); misExpr("3/4", "tanA と取り違えている（対辺/隣辺）"); } if (randN === 1) { misExpr("3/5", "sinA と取り違えている（対辺/斜辺）"); misExpr("3/4", "tanA と取り違えている（対辺/隣辺）"); } if (randN === 2) { misExpr("3/5", "sinA と取り違えている（対辺/斜辺）"); misExpr("4/5", "cosA と取り違えている（隣辺/斜辺）"); }
+    setResult("問題　" + questionCount + "　　" + questioneaseF[randN][0] + (correctExpr ? exprNote : ""));
+}
+
+// ---------- 追加分の問題（数直線・ベクトル・二次関数・因数分解・展開・平方完成・集合と命題） ----------
+function qHead() { return "問題" + questionCount + "　　"; }
+function randRange(min, max) { return min + randInt(max - min + 1); }
+function randNZ(min, max) { let n = 0; while (n === 0) n = randRange(min, max); return n; }
+function pick(arr) { return arr[randInt(arr.length)]; }
+function setPlaceholder(t) { document.getElementById("answer").placeholder = t; }
+function setVecAnswer(arr, hint) { correctVec = arr; vecNames = hint.split(" "); setPlaceholder(hint); }
+
+function constTerm(n) { return n === 0 ? "" : (n < 0 ? "-" : "+") + Math.abs(n); }
+function linTerm(p) { return "x" + constTerm(p); }                       // x+p
+function poly2(p, q) {                                                   // x²+px+q
+    return "x²" + (p === 0 ? "" : (p < 0 ? "-" : "+") + absCoef(p) + "x") + constTerm(q);
+}
+function polyA(a, b, c) {                                                // ax²+bx+c
+    return leadCoef(a) + "x²" + (b === 0 ? "" : (b < 0 ? "-" : "+") + absCoef(b) + "x") + constTerm(c);
+}
+
+// 数直線の図（-6〜6）
+function drawNumberLine(points) {
+    const step = 25, x0 = 30, y = 55;
+    const px = v => x0 + (v + 6) * step;
+    let svg = `<svg width="360" height="110"><line x1="15" y1="${y}" x2="345" y2="${y}" stroke="black" stroke-width="2" />`;
+    for (let v = -6; v <= 6; v++) {
+        svg += `<line x1="${px(v)}" y1="${y - 6}" x2="${px(v)}" y2="${y + 6}" stroke="black" stroke-width="2" />`;
+        if (v % 5 === 0) {
+            svg += `<text x="${px(v)}" y="${y + 26}" font-size="14" text-anchor="middle">${v}</text>`;
+        }
+    }
+    points.forEach(pt => {
+        svg += `<circle cx="${px(pt.v)}" cy="${y}" r="6" fill="black" />` +
+               `<text x="${px(pt.v)}" y="${y - 14}" font-size="18" text-anchor="middle">${pt.name}</text>`;
+    });
+    document.getElementById("図形").innerHTML = svg + "</svg>";
+}
+
+// 7: 数直線
+function makeQuestionNumberLine() {
+    const kind = randInt(5);
+    if (kind === 0) {
+        const p = randRange(-6, 6);
+        correctAnswer = p;
+        drawNumberLine([{ name: "P", v: p }]);
+        mis(-p, "符号が逆（0より左側は負の数）");
+        setResult(qHead() + "数直線上の点Pの座標を答えよ");
+    } else if (kind === 1) {
+        const a = randRange(-6, 6);
+        let b = randRange(-6, 6);
+        while (b === a) b = randRange(-6, 6);
+        correctAnswer = Math.abs(a - b);
+        drawNumberLine([{ name: "A", v: a }, { name: "B", v: b }]);
+        mis(a + b, "距離を「差」ではなく「和」にしている");
+        setResult(qHead() + "数直線上の2点A、Bの距離を答えよ");
+    } else if (kind === 2) {
+        const a = randRange(-10, 10);
+        let b = randRange(-10, 10);
+        while (b === a) b = randRange(-10, 10);
+        correctAnswer = Math.abs(a - b);
+        mis(a + b, "距離を「差」ではなく「和」にしている");
+        setResult(qHead() + "数直線上の2点 A(" + a + ")、B(" + b + ") の距離を答えよ");
+    } else if (kind === 3) {
+        const m = randRange(-8, 8);
+        const d = randRange(1, 5);
+        const pair = Math.random() < 0.5 ? [m - d, m + d] : [m + d, m - d];
+        correctAnswer = m;
+        mis(pair[0] + pair[1], "÷2 を忘れている（中点は2点の平均）");
+        setResult(qHead() + "数直線上の2点 A(" + pair[0] + ")、B(" + pair[1] + ") の中点Mの座標を答えよ");
+    } else {
+        const a = randRange(-8, 8);
+        const n = randRange(1, 9);
+        const positive = Math.random() < 0.5;
+        correctAnswer = positive ? a + n : a - n;
+        mis(positive ? a - n : a + n, "動かす向きが逆（正の向き=右、負の向き=左）"); mis(n, "動かした量だけを答えている（A の座標に足し引きしていない）");
+        setResult(qHead() + "数直線上の点 A(" + a + ") を" + (positive ? "正" : "負") +
+            "の向きに " + n + " だけ動かした点の座標を答えよ");
+    }
+}
+
+// 8: ベクトル
+function makeQuestionVector() {
+    const kind = randInt(9);
+    const rv = () => [randRange(-5, 5), randRange(-5, 5)];
+    const fmt = u => "(" + u[0] + ", " + u[1] + ")";
+    const a = rv(), b = rv();
+    const vecQ = (text, ans) => {
+        setVecAnswer(ans, "x成分 y成分");
+        setResult(qHead() + text + "\n（答えは「x成分 y成分」の順にスペース区切り）");
+    };
+
+    if (kind === 0) {
+        misVec([a[0] - b[0], a[1] - b[1]], "足し算を引き算にしている（a+b を a−b にしている）");
+        vecQ("a=" + fmt(a) + "、b=" + fmt(b) + " のとき、a+b の成分を求めよ",
+            [a[0] + b[0], a[1] + b[1]]);
+    } else if (kind === 1) {
+        misVec([b[0] - a[0], b[1] - a[1]], "引く順序が逆（b−a を計算している）"); misVec([a[0] + b[0], a[1] + b[1]], "引き算を足し算にしている");
+        vecQ("a=" + fmt(a) + "、b=" + fmt(b) + " のとき、a-b の成分を求めよ",
+            [a[0] - b[0], a[1] - b[1]]);
+    } else if (kind === 2) {
+        const k = randRange(2, 4);
+        misVec([a[0] + b[0], a[1] + b[1]], k + " 倍を掛け忘れている（a+b にしている）"); misVec([k * (a[0] + b[0]), k * (a[1] + b[1])], k + " 倍を b にも掛けている");
+        vecQ("a=" + fmt(a) + "、b=" + fmt(b) + " のとき、" + k + "a+b の成分を求めよ",
+            [k * a[0] + b[0], k * a[1] + b[1]]);
+    } else if (kind === 3) {
+        correctAnswer = a[0] * b[0] + a[1] * b[1];
+        mis(a[0] * b[1] + a[1] * b[0], "内積の成分の組み合わせ違い（x×y, y×x にしている）"); mis(a[0] * b[0] - a[1] * b[1], "成分の積の和でなく差にしている"); mis(a[0] + b[0] + a[1] + b[1], "成分を掛けずに足している");
+        setResult(qHead() + "a=" + fmt(a) + "、b=" + fmt(b) + " のとき、内積 a・b を求めよ");
+    } else if (kind === 4) {
+        const t = pick([[3, 4], [4, 3], [6, 8], [8, 6], [5, 12], [12, 5]]);
+        const v = [t[0] * pick([1, -1]), t[1] * pick([1, -1])];
+        correctAnswer = Math.sqrt(t[0] * t[0] + t[1] * t[1]);
+        mis(t[0] * t[0] + t[1] * t[1], "√を取っていない（成分の2乗の和のまま答えている）"); mis(t[0] + t[1], "成分をそのまま足している（√(x²+y²) を使っていない）");
+        setResult(qHead() + "a=" + fmt(v) + " のとき、大きさ |a| を求めよ");
+    } else if (kind === 5) {
+        const A = [randRange(-5, 5), randRange(-5, 5)];
+        const B = [randRange(-5, 5), randRange(-5, 5)];
+        misVec([A[0] - B[0], A[1] - B[1]], "始点−終点にしている（AB=終点B−始点A）");
+        vecQ("A" + fmt(A) + "、B" + fmt(B) + " のとき、ベクトルAB の成分を求めよ",
+            [B[0] - A[0], B[1] - A[1]]);
+    } else if (kind === 6) {
+        // a=(p,q), b=(k,r) が垂直: p*k + q*r = 0
+        const p = randNZ(-3, 3), q = randNZ(-3, 3), m = randRange(1, 3);
+        const r = -p * m;
+        correctAnswer = q * m;
+        mis(-q * m, "符号の間違い（pk+qr=0 を解くときの移項）"); mis(p * m, "成分 p と q を取り違えている");
+        setResult(qHead() + "a=(" + p + ", " + q + ")、b=(k, " + r + ") が垂直のとき、k の値を求めよ");
+    } else if (kind === 7) {
+        let p, q;
+        do { p = randNZ(-3, 3); q = randNZ(-3, 3); } while (Number.isInteger(Math.sqrt(p * p + q * q)));
+        setExpr(vStr(vSimplifyRad([1, 1], p * p + q * q)), true);
+        setResult(qHead() + "a=" + fmt([p, q]) + " のとき、大きさ |a| を簡単な形で求めよ" + exprNote);
+    } else {
+        let u, v, n;
+        do {
+            u = rv(); v = rv();
+            n = (u[0] + v[0]) * (u[0] + v[0]) + (u[1] + v[1]) * (u[1] + v[1]);
+        } while (n === 0 || Number.isInteger(Math.sqrt(n)));
+        setExpr(vStr(vSimplifyRad([1, 1], n)), true);
+        setResult(qHead() + "a=" + fmt(u) + "、b=" + fmt(v) + " のとき、|a+b| を簡単な形で求めよ" + exprNote);
+    }
+}
+
+// 9: 二次関数
+function makeQuestionQuadratic() {
+    const kind = randInt(5);
+    const aList = [1, 2, 3, -1, -2];
+    const vertexForm = (a, p, q) => "y=" + leadCoef(a) + "(x" + constTerm(-p) + ")²" + constTerm(q);
+
+    if (kind === 0) {
+        const a = pick(aList), p = randNZ(-5, 5), q = randNZ(-9, 9);
+        setVecAnswer([p, q], "p q");
+        misVec([-p, q], "頂点のx座標の符号が逆（(x−p)² の p の符号の読み違い）"); misVec([q, p], "x座標とy座標を入れ替えている");
+        setResult(qHead() + vertexForm(a, p, q) + " の頂点の座標 (p, q) を求めよ\n（答えは「p q」の順にスペース区切り）");
+    } else if (kind === 1) {
+        const a = pick(aList), b = randRange(-4, 4), c = randNZ(-5, 5), k = randNZ(-3, 3);
+        correctAnswer = a * k * k + b * k + c;
+        mis(a * k + b * k + c, "x² を x にしている（2乗の計算忘れ）"); mis(a * k * k - b * k + c, "x の項の符号ミス（負の数の代入）"); mis((a * k) * (a * k) + b * k + c, "(ax)² と ax² を混同している");
+        setResult(qHead() + "y=" + polyA(a, b, c) + " において x=" + k + " のときの y の値を求めよ");
+    } else if (kind === 2) {
+        const a = pick(aList), p = randNZ(-5, 5), q = randNZ(-9, 9);
+        correctAnswer = q;
+        mis(p, "頂点の x座標を答えている（最小値・最大値は y座標）");
+        setResult(qHead() + vertexForm(a, p, q) + " の" + (a > 0 ? "最小値" : "最大値") + "を求めよ");
+    } else if (kind === 3) {
+        const a = pick([1, 2, 3]), p = randNZ(-4, 4), c = randNZ(-5, 5);
+        correctAnswer = p;
+        mis(-p, "軸の符号の取り違え（x=−b/2a）"); mis(a * p, "2a ではなく 2 だけで割っている（x=−b/2a の a）");
+        setResult(qHead() + "y=" + polyA(a, -2 * a * p, c) + " の軸は x=□ である。□に入る値を求めよ");
+    } else {
+        const a = pick(aList), b = randNZ(-6, 6), c = randNZ(-5, 5);
+        correctAnswer = b * b - 4 * a * c;
+        mis(b * b + 4 * a * c, "−4ac の符号ミス（D=b²−4ac）"); mis(b * b - a * c, "4 を掛け忘れている（D=b²−4ac）"); mis(b * b, "−4ac を計算し忘れている");
+        setResult(qHead() + "y=" + polyA(a, b, c) + " の判別式 D=b²-4ac の値を求めよ");
+    }
+}
+
+// 10: 因数分解
+function makeQuestionFactor() {
+    const kind = randInt(3);
+    if (kind === 0) {
+        let a = randNZ(-6, 6), b = randNZ(-6, 6);
+        if (a > b) [a, b] = [b, a];
+        setVecAnswer([a, b], "a b");
+        misVec([-b, -a], "符号を逆にしている（(x+a)(x+b) の a, b の符号の取り違え）");
+        setResult(qHead() + poly2(a + b, a * b) + " を因数分解して (x+a)(x+b) (a≦b) と表すとき、a と b を求めよ\n（答えは「a b」の順にスペース区切り）");
+    } else if (kind === 1) {
+        const n = randRange(2, 9);
+        correctAnswer = n;
+        mis(n * n, "平方根をとっていない（a² の a ではなく a² を答えている）");
+        setResult(qHead() + "x²-" + (n * n) + " を因数分解して (x+a)(x-a) (a>0) と表すとき、a を求めよ");
+    } else {
+        const a = randNZ(-7, 7);
+        correctAnswer = a;
+        mis(2 * a, "x の係数 2a をそのまま答えている（2 で割っていない）"); mis(a * a, "定数項 a² を答えている（平方根をとっていない）");
+        setResult(qHead() + poly2(2 * a, a * a) + " を因数分解して (x+a)² と表すとき、a を求めよ");
+    }
+}
+
+// 11: 展開
+function makeQuestionExpand() {
+    const kind = randInt(3);
+    if (kind === 0) {
+        const a = randNZ(-6, 6), b = randNZ(-6, 6);
+        setVecAnswer([a + b, a * b], "p q");
+        misVec([a * b, a + b], "p と q を逆にしている（p は和 a+b、q は積 ab）"); misVec([-(a + b), a * b], "p の符号ミス"); misVec([a + b, -a * b], "q の符号ミス");
+        setResult(qHead() + "(" + linTerm(a) + ")(" + linTerm(b) + ") を展開して x²+px+q と表すとき、p と q を求めよ\n（答えは「p q」の順にスペース区切り）");
+    } else if (kind === 1) {
+        const a = randNZ(-7, 7);
+        setVecAnswer([2 * a, a * a], "p q");
+        misVec([0, a * a], "中央の項 2ax を忘れている（(x+a)²=x²+a² としている）"); misVec([a, a * a], "中央の項の 2 を忘れている（2ax の 2）"); misVec([2 * a, -a * a], "定数項の符号ミス（(−a)² は正）"); misVec([2 * a, 2 * a], "定数項を a² ではなく 2a にしている");
+        setResult(qHead() + "(" + linTerm(a) + ")² を展開して x²+px+q と表すとき、p と q を求めよ\n（答えは「p q」の順にスペース区切り）");
+    } else {
+        const n = randRange(2, 9);
+        correctAnswer = -n * n;
+        mis(n * n, "符号ミス（(x+a)(x−a)=x²−a² なので q は負）");
+        setResult(qHead() + "(x+" + n + ")(x-" + n + ") を展開して x²+q と表すとき、q を求めよ");
+    }
+}
+
+// 12: 平方完成
+function makeQuestionComplete() {
+    const a = randNZ(-6, 6), b = randNZ(-9, 9);
+    setVecAnswer([a, b], "a b");
+    misVec([a, a * a + b], "a² を引き忘れている（b=q−a²）"); misVec([a, b + 2 * a * a], "a² を足してしまっている（引くべき）"); misVec([2 * a, b], "x の係数を 2 で割っていない（a=p÷2）"); misVec([-a, b], "a の符号が逆になっている");
+    setResult(qHead() + poly2(2 * a, a * a + b) + " を平方完成して (x+a)²+b と表すとき、a と b を求めよ\n（答えは「a b」の順にスペース区切り）");
+}
+
+// 13: 集合と命題
+function shuffled(arr) {
+    const r = arr.slice();
+    for (let i = r.length - 1; i > 0; i--) {
+        const j = randInt(i + 1);
+        [r[i], r[j]] = [r[j], r[i]];
+    }
+    return r;
+}
+
+// [p, q, 答え]  1=必要条件であるが十分条件ではない 2=十分条件であるが必要条件ではない 3=必要十分条件 4=どちらでもない
+const conditionList = [
+    ["x=3", "x²=9", 2],
+    ["x>3", "x>1", 2],
+    ["x>1", "x>3", 1],
+    ["x²=9", "x=3", 1],
+    ["xy=0", "x=0", 1],
+    ["整数nが6の倍数", "整数nが3の倍数", 2],
+    ["x+1=3", "x=2", 3],
+    ["x>0", "x²>0", 2],
+    ["四角形が正方形", "四角形が長方形", 2],
+    ["x=1", "x(x-1)=0", 2],
+    ["x>0", "x<5", 4],
+    ["整数nが偶数", "整数nが3の倍数", 4],
+    ["2x=6", "x=3", 3],
+    ["x²>4", "x>3", 1]
+];
+
+// [問題文, 答え]  1=逆 2=裏 3=対偶
+const converseList = [
+    ["命題「PならばQ」に対して、「QならばP」を何というか。", 1],
+    ["命題「PならばQ」に対して、「PでないならばQでない」を何というか。", 2],
+    ["命題「PならばQ」に対して、「QでないならばPでない」を何というか。", 3],
+    ["命題「PならばQ」が真のとき、必ず真になるのはどれか。", 3]
+];
+
+function makeQuestionSet() {
+    const kind = randInt(6);
+    if (kind === 0) {
+        const i = randRange(1, 5), oa = randRange(1, 6), ob = randRange(1, 6);
+        correctAnswer = oa + ob + i;
+        mis(oa + ob + 2 * i, "重なり n(A∩B) を引いていない（n(A)+n(B) にしている）"); mis(oa + ob, "n(A∩B) を引きすぎている（2回引いている）");
+        setResult(qHead() + "n(A)=" + (oa + i) + "、n(B)=" + (ob + i) + "、n(A∩B)=" + i + " のとき、n(A∪B) を求めよ");
+    } else if (kind === 1) {
+        const u = randRange(10, 30), a = randRange(3, u - 3);
+        correctAnswer = u - a;
+        mis(a, "補集合ではなく A の個数を答えている"); mis(u + a, "引き算でなく足し算にしている");
+        setResult(qHead() + "全体集合Uについて n(U)=" + u + "、n(A)=" + a + " のとき、Aの補集合の要素の個数を求めよ");
+    } else if (kind === 2) {
+        const i = randRange(1, 5), oa = randRange(1, 6), ob = randRange(1, 6);
+        correctAnswer = i;
+        mis(oa + ob + i, "n(A∪B) をそのまま答えている（n(A∩B) を求めていない）"); mis(oa + ob + 2 * i, "n(A)+n(B) を答えている（n(A∪B) を引いていない）");
+        setResult(qHead() + "n(A)=" + (oa + i) + "、n(B)=" + (ob + i) + "、n(A∪B)=" + (oa + ob + i) + " のとき、n(A∩B) を求めよ");
+    } else if (kind === 3) {
+        const U = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const A = shuffled(U).slice(0, randRange(3, 6)).sort((x, y) => x - y);
+        const B = shuffled(U).slice(0, randRange(3, 6)).sort((x, y) => x - y);
+        const inter = A.filter(x => B.includes(x));
+        const union = U.filter(x => A.includes(x) || B.includes(x));
+        const t = randInt(3);
+        let ask;
+        if (t === 0) { ask = "A∩B の要素の個数"; correctAnswer = inter.length; }
+        else if (t === 1) { ask = "A∪B の要素の個数"; correctAnswer = union.length; }
+        else { ask = "Aの補集合の要素の個数"; correctAnswer = U.length - A.length; }
+        if (t === 0) { mis(union.length, "共通部分ではなく和集合の個数を答えている"); mis(A.length + B.length, "A と B の個数を足している（重なりを引いていない）"); } else if (t === 1) { mis(inter.length, "和集合ではなく共通部分の個数を答えている"); mis(A.length + B.length, "重なりを引いていない（n(A)+n(B) にしている）"); } else { mis(A.length, "補集合ではなく A の個数を答えている"); }
+        setResult(qHead() + "全体集合 U={1, 2, 3, 4, 5, 6, 7, 8, 9}\nA={" + A.join(", ") + "}、B={" + B.join(", ") + "}\nのとき、" + ask + "を求めよ");
+    } else if (kind === 4) {
+        const c = pick(conditionList);
+        correctAnswer = c[2];
+        if (c[2] !== 3) mis(3, "逆も成り立つと思い込んでいる（反例を探していない）"); if (c[2] === 1) mis(2, "必要条件と十分条件を逆にしている（p⇒q と q⇒p の向きの取り違え）"); if (c[2] === 2) mis(1, "必要条件と十分条件を逆にしている（p⇒q と q⇒p の向きの取り違え）"); if (c[2] === 3) { mis(1, "片方の向きしか調べていない"); mis(2, "片方の向きしか調べていない"); } if (c[2] === 4) { mis(1, "成り立たない向きがあるのに成り立つと判断している（反例の確認不足）"); mis(2, "成り立たない向きがあるのに成り立つと判断している（反例の確認不足）"); }
+        setResult(qHead() + "p：" + c[0] + "　q：" + c[1] + "\npはqであるための何条件か。番号で答えよ\n" +
+            "1:必要条件であるが十分条件ではない\n2:十分条件であるが必要条件ではない\n3:必要十分条件\n4:どちらでもない");
+    } else {
+        const c = pick(converseList);
+        correctAnswer = c[1];
+        [1, 2, 3].filter(x => x !== c[1]).forEach(x => mis(x, c[0].includes("必ず真") ? "逆・裏は、元の命題が真でも真とは限らない" : "逆・裏・対偶の用語の取り違え"));
+        setResult(qHead() + c[0] + "\n番号で答えよ　1:逆　2:裏　3:対偶");
+    }
+}
+
+// ---------- 第3弾の追加分 ----------
+const SUP = { "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻" };
+const SUB = { "0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉" };
+function sup(n) { return String(n).split("").map(c => SUP[c] || c).join(""); }
+function sub(n) { return String(n).split("").map(c => SUB[c] || c).join(""); }
+function gcd(a, b) { return b === 0 ? Math.abs(a) : gcd(b, a % b); }
+function perm(n, r) { let x = 1; for (let i = 0; i < r; i++) x *= (n - i); return x; }
+function comb(n, r) { return perm(n, r) / perm(r, r); }
+function rtTerm(k, s) { return (k === 1 ? "" : k) + "√" + s; }
+function piFrac(n, d) { return (n === 1 ? "" : n) + "π" + (d === 1 ? "" : "/" + d); }
+const VEC2 = "\n（答えは「%1 %2」の順にスペース区切り）";
+function vecHint(a, b) { return VEC2.replace("%1", a).replace("%2", b); }
+
+// ---------- √・分数を含む答えの採点 ----------
+const exprNote = "\n（√は「√」または「ルート」、分数は「/」で入力。例: 2√3、√3/2）";
+function setExpr(str, strict) {
+    correctAnswer = str;
+    correctExpr = str;
+    exprStrict = !!strict;
+    setPlaceholder("例 2√3, √3/2");
+}
+function fr(n, d) {
+    if (d === undefined) d = 1;
+    if (d < 0) { n = -n; d = -d; }
+    const g = gcd(n, d) || 1;
+    return [n / g, d / g];
+}
+function frMul(a, b) { return fr(a[0] * b[0], a[1] * b[1]); }
+function frAdd(a, b) { return fr(a[0] * b[1] + b[0] * a[1], a[1] * b[1]); }
+
+// (n/d)√s を表す値
+function V(n, d, s) { return { c: fr(n, d), s: s }; }
+function vSimplifyRad(c, rad) {
+    let k = 1;
+    for (let i = Math.floor(Math.sqrt(rad)); i >= 1; i--) {
+        if (rad % (i * i) === 0) { k = i; break; }
+    }
+    return { c: frMul(c, [k, 1]), s: rad / (k * k) };
+}
+function vMul(x, y) { return vSimplifyRad(frMul(x.c, y.c), x.s * y.s); }
+function vDiv(x, y) {
+    const inv = fr(y.c[1], y.c[0]);
+    return vSimplifyRad(frMul(frMul(x.c, inv), [1, y.s]), x.s * y.s);
+}
+function vStr(v) {
+    const n = v.c[0], d = v.c[1];
+    if (n === 0) return "0";
+    if (v.s === 1) return d === 1 ? String(n) : n + "/" + d;
+    const coef = n === 1 ? "" : n === -1 ? "-" : String(n);
+    return coef + "√" + v.s + (d === 1 ? "" : "/" + d);
+}
+function mapToString(map) {
+    const keys = Object.keys(map).map(Number).sort((a, b) => a - b);
+    let out = "";
+    keys.forEach(k => {
+        const c = map[k];
+        if (c[0] === 0) return;
+        let t = vStr({ c: c, s: k });
+        if (out !== "" && t[0] !== "-") t = "+" + t;
+        out += t;
+    });
+    return out || "0";
+}
+
+// 特別な角の三角比
+const T = {
+    sin: { 0: V(0, 1, 1), 30: V(1, 2, 1), 45: V(1, 2, 2), 60: V(1, 2, 3), 90: V(1, 1, 1), 120: V(1, 2, 3), 135: V(1, 2, 2), 150: V(1, 2, 1) },
+    cos: { 0: V(1, 1, 1), 30: V(1, 2, 3), 45: V(1, 2, 2), 60: V(1, 2, 1), 90: V(0, 1, 1), 120: V(-1, 2, 1), 135: V(-1, 2, 2), 150: V(-1, 2, 3) },
+    tan: { 0: V(0, 1, 1), 30: V(1, 3, 3), 45: V(1, 1, 1), 60: V(1, 1, 3), 120: V(-1, 1, 3), 135: V(-1, 1, 1), 150: V(-1, 3, 3) }
+};
+
+function normalizeExprText(s) {
+    s = String(s).replace(/ルート|ろーと|sqrt|root|rt/gi, "√").replace(/（/g, "(").replace(/）/g, ")");
+    s = normalizeNumberText(s).replace(/\s/g, "");
+    return s.replace(/√\((\d+)\)/g, "√$1").replace(/\((√?\d+)\)/g, "$1").replace(/[×・＊]/g, "*");
+}
+
+// 「2√3」「√3/2」「1/√3」のような1項を解析
+function parseTermStr(t) {
+    const toks = t.match(/\d+(?:\.\d+)?|√|\/|\*/g);
+    if (!toks || toks.join("") !== t) return null;
+    let coeff = [1, 1], rad = 1, op = "*", prevOp = true, clean = true, i = 0;
+    while (i < toks.length) {
+        const tk = toks[i];
+        if (tk === "/" || tk === "*") {
+            if (prevOp) return null;
+            op = tk; prevOp = true; i++;
+            continue;
+        }
+        if (tk === "√") {
+            const nx = toks[i + 1];
+            if (nx === undefined || !/^\d+$/.test(nx) || Number(nx) === 0) return null;
+            const val = Number(nx);
+            i += 2;
+            if (op === "/") { coeff = frMul(coeff, [1, val]); clean = false; }   // 分母に√
+            rad *= val;
+        } else {
+            i++;
+            let f;
+            if (tk.includes(".")) f = fr(Number(tk.replace(".", "")), Math.pow(10, tk.split(".")[1].length));
+            else f = fr(Number(tk), 1);
+            if (op === "/") {
+                if (f[0] === 0) return null;
+                coeff = frMul(coeff, [f[1], f[0]]);
+            } else coeff = frMul(coeff, f);
+        }
+        op = "*"; prevOp = false;
+    }
+    if (prevOp) return null;
+    const w = vSimplifyRad(coeff, rad);
+    if (w.s !== rad) clean = false;                                            // √の中に平方数が残っている
+    return { c: w.c, s: w.s, clean: clean };
+}
+
+function parseExpr(raw) {
+    const str = normalizeExprText(raw);
+    if (str === "" || /[()]/.test(str)) return null;
+    const terms = str.match(/[+-]?[^+-]+/g);
+    if (!terms || terms.join("") !== str) return null;
+    const map = {};
+    let clean = true;
+    for (const term of terms) {
+        const v = parseTermStr(term.replace(/^[+-]/, ""));
+        if (!v) return null;
+        if (!v.clean) clean = false;
+        const c = term[0] === "-" ? [-v.c[0], v.c[1]] : v.c;
+        map[v.s] = map[v.s] ? frAdd(map[v.s], c) : c;
+    }
+    Object.keys(map).forEach(k => { if (map[k][0] === 0) delete map[k]; });
+    return { map: map, clean: clean };
+}
+
+function exprEqual(a, b) {
+    const ka = Object.keys(a), kb = Object.keys(b);
+    return ka.length === kb.length && ka.every(k => b[k] && a[k][0] === b[k][0] && a[k][1] === b[k][1]);
+}
+
+function judgeExpr(raw) {
+    const u = parseExpr(raw), c = parseExpr(correctExpr);
+    if (!u || !c) return false;
+    if (exprStrict && !u.clean) return false;
+    return exprEqual(u.map, c.map);
+}
+
+// 6: 三角比（追加問題）
+function makeQuestionTrigExtra() {
+    const kind = randInt(4);
+    const names = ["sin", "cos", "tan"];
+    if (kind === 0) {
+        const deg = pick([120, 135, 150]), fn = pick(names);
+        setExpr(vStr(T[fn][deg]), false);
+        setResult(qHead() + fn + " " + deg + "° の値を求めよ" + exprNote);
+    } else if (kind === 1) {
+        const A = pick([30, 45, 60]), h = 2 * randRange(1, 6);
+        const useSin = Math.random() < 0.5;
+        setExpr(vStr(vMul(V(h, 1, 1), T[useSin ? "sin" : "cos"][A])), false);
+        misExpr(vStr(vMul(V(h, 1, 1), T[useSin ? "cos" : "sin"][A])), "sin と cos を取り違えている（対辺と隣辺の取り違え）"); misExpr(String(h), "斜辺をそのまま答えている（sin/cos を掛けていない）");
+        setResult(qHead() + "直角三角形ABCで、∠C=90°、∠A=" + A + "°、AB=" + h + " のとき、" +
+            (useSin ? "BC" : "AC") + " の長さを求めよ" + exprNote);
+    } else if (kind === 2) {
+        let [a, b, c] = pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25]]);
+        if (Math.random() < 0.5) [a, b] = [b, a];
+        const t = pick([["sin", a, c, "cos", b, c], ["cos", a, c, "sin", b, c], ["sin", a, c, "tan", a, b]]);
+        const f = fr(t[4], t[5]);
+        setExpr(f[1] === 1 ? String(f[0]) : f[0] + "/" + f[1], false);
+        setResult(qHead() + "0°<θ<90° で " + t[0] + "θ=" + a + "/" + c + " のとき、" + t[3] + "θ の値を分数で求めよ");
+    } else {
+        const A = pick([30, 45, 60]), fn = pick(names);
+        setExpr(String(A), false);
+        misExpr(String(90 - A), "余角（90°−θ）を答えている（sin と cos の取り違えの可能性）");
+        setResult(qHead() + "0°<θ<90° で " + fn + "θ=" + vStr(T[fn][A]) + " のとき、θ は何度か");
+    }
+}
+
+// 14: 平方根
+function makeQuestionRoot() {
+    const kind = randInt(11);
+    if (kind === 0) {
+        const n = randRange(2, 15);
+        correctAnswer = n;
+        mis(n * n / 2, "√ を「÷2」と取り違えている");
+        setResult(qHead() + "√" + (n * n) + " の値を求めよ");
+    } else if (kind === 1) {
+        const a = randRange(2, 7), s = pick([2, 3, 5, 6, 7]);
+        setVecAnswer([a, s], "a b");
+        misVec([s, a], "a と b の順序が逆（a√b の a は √の外に出した数）"); misVec([1, a * a * s], "くくり出さずにそのまま答えている");
+        setResult(qHead() + "√" + (a * a * s) + " を a√b（bは最も小さい自然数）と表すとき、a と b を求めよ" + vecHint("a", "b"));
+    } else if (kind === 2) {
+        const a = randRange(5, 15), b = randRange(1, a - 1);
+        correctAnswer = a - b;
+        mis(a + b, "(√a+√b)(√a−√b)=a−b を和にしている");
+        setResult(qHead() + "(√" + a + "+√" + b + ")(√" + a + "-√" + b + ") の値を求めよ");
+    } else if (kind === 3) {
+        const s = pick([2, 3, 5]), m = randRange(1, 3), n = randRange(1, 3);
+        correctAnswer = s * m * n;
+        mis(s * m * m * s * n * n, "√a×√b=√(ab) の √ を外していない（√の中の ab をそのまま答えている）");
+        setResult(qHead() + "√" + (s * m * m) + "×√" + (s * n * n) + " の値を求めよ");
+    } else if (kind === 4) {
+        const s = pick([2, 3, 5, 7]), a = randRange(2, 8), b = randRange(1, 6);
+        const plus = Math.random() < 0.5;
+        correctAnswer = plus ? a + b : a - b;
+        mis(plus ? a - b : a + b, "足し算と引き算を取り違えている"); mis(a * b, "√の係数を掛けている（同じ √ の係数は足し引きする）");
+        setResult(qHead() + rtTerm(a, s) + (plus ? " + " : " - ") + rtTerm(b, s) + " = c√" + s + " のとき、c を求めよ");
+    } else if (kind === 5) {
+        const s = pick([2, 3, 5]), m = randRange(1, 6);
+        correctAnswer = m;
+        mis(s * m, "分母 s で割っていない（分子の数をそのまま答えている）");
+        setResult(qHead() + (s * m) + "/√" + s + " を有理化すると a√" + s + " になる。a を求めよ");
+    } else if (kind === 6) {
+        const a = randRange(2, 6), s = pick([2, 3, 5, 6, 7]);
+        setExpr(vStr(V(a, 1, s)), true);
+        setResult(qHead() + "√" + (a * a * s) + " を簡単にせよ" + exprNote);
+    } else if (kind === 7) {
+        const k = randRange(1, 6), s = pick([2, 3, 5]);
+        setExpr(vStr(vSimplifyRad(fr(k, s), s)), true);
+        misExpr(k + "/" + s, "分母にだけ √ を掛けて、分子に掛け忘れている");
+        setResult(qHead() + k + "/√" + s + " の分母を有理化せよ" + exprNote);
+    } else if (kind === 8) {
+        const pool = [2, 3, 5, 6, 7, 8, 10, 12, 15];
+        const a = pick(pool), b = pick(pool);
+        setExpr(vStr(vSimplifyRad([1, 1], a * b)), true);
+        misExpr(String(a * b), "√ を外している（√a×√b=√(ab) であり ab ではない）"); misExpr(vStr(vSimplifyRad([1, 1], a + b)), "掛け算を足し算にしている（√a×√b=√(a+b) ではない）");
+        setResult(qHead() + "√" + a + "×√" + b + " を簡単にせよ" + exprNote);
+    } else if (kind === 9) {
+        const s = pick([2, 3, 5, 6, 7]), a = randRange(1, 4), b = randRange(1, 4);
+        const plus = Math.random() < 0.5;
+        setExpr(vStr(V(plus ? a + b : a - b, 1, s)), true);
+        if (plus) misExpr("√" + (a * a * s + b * b * s), "√の中を足している（√a+√b=√(a+b) ではない）"); else if (a !== b) misExpr("√" + Math.abs(a * a * s - b * b * s), "√の中を引いている（√a−√b=√(a−b) ではない）");
+        setResult(qHead() + "√" + (a * a * s) + (plus ? "+" : "-") + "√" + (b * b * s) + " を簡単にせよ" + exprNote);
+    } else {
+        const a = randRange(1, 4), b = pick([2, 3, 5, 6, 7]);
+        const m = {};
+        m[1] = fr(a * a + b, 1);
+        m[b] = fr(2 * a, 1);
+        setExpr(mapToString(m), true);
+        misExpr(String(a * a + b), "中央の項 2a√b を忘れている"); const m2 = {}; m2[1] = fr(a * a + b, 1); m2[b] = fr(a, 1); misExpr(mapToString(m2), "中央の項の 2 を忘れている（2a√b の 2）");
+        setResult(qHead() + "(" + a + "+√" + b + ")² を展開して簡単にせよ" + exprNote);
+    }
+}
+
+// 15: 一次方程式・文字式
+function makeQuestionLinearEq() {
+    const kind = randInt(5);
+    const lin = (a, b) => leadCoef(a) + "x" + constTerm(b);
+    if (kind === 0) {
+        const x = randNZ(-9, 9), a = randRange(2, 7), b = randNZ(-9, 9);
+        correctAnswer = x;
+        mis((a * x + b + b) / a, "移項で符号を変えていない（b を引かずに足している）"); mis(a * x, "x の係数 a で割っていない（移項した値をそのまま答えている）");
+        setResult(qHead() + lin(a, b) + "=" + (a * x + b) + " を解け");
+    } else if (kind === 1) {
+        const x = randNZ(-9, 9), a = randRange(2, 8), b = randNZ(-9, 9);
+        let c = randNZ(-4, 5);
+        while (c === a) c = randNZ(-4, 5);
+        correctAnswer = x;
+        const dd = (a - c) * x + b; mis((dd - b) / (a + c), "x の項の移項で符号を変えていない（a−c ではなく a+c で割っている）"); mis((dd + b) / (a - c), "定数項の移項で符号を変えていない");
+        setResult(qHead() + lin(a, b) + "=" + lin(c, (a - c) * x + b) + " を解け");
+    } else if (kind === 2) {
+        const x = randNZ(-6, 6), a = randRange(2, 6), b = randNZ(-6, 6);
+        correctAnswer = x;
+        mis(x + b, "括弧の中の定数 b を移項していない（a で割っただけ）"); mis(x + 2 * b, "b の移項の符号ミス");
+        setResult(qHead() + a + "(x" + constTerm(b) + ")=" + (a * (x + b)) + " を解け");
+    } else if (kind === 3) {
+        const m = randRange(2, 4), n = pick([-3, -2, 2, 3]);
+        const a = randNZ(-3, 3), b = randNZ(-5, 5), c = randNZ(-3, 3), d = randNZ(-5, 5);
+        setVecAnswer([m * a + n * c, m * b + n * d], "p q");
+        misVec([m * a + Math.abs(n) * c, m * b + Math.abs(n) * d], "引く括弧の符号を変えていない（−n(cx+d) の分配ミス）");
+        setResult(qHead() + m + "(" + lin(a, b) + ")" + (n < 0 ? "-" : "+") + Math.abs(n) + "(" + lin(c, d) +
+            ") を計算して px+q と表すとき、p と q を求めよ" + vecHint("p", "q"));
+    } else {
+        const c1 = randRange(1, 4), c2 = randRange(1, 4), c3 = randRange(1, 4);
+        const A = randNZ(-4, 4), B = randNZ(-4, 4);
+        correctAnswer = c1 * A * A + c2 * A * B - c3 * B;
+        mis(c1 * A * A + c2 * A * B + c3 * B, "−c×b の符号ミス（引き算を足し算にしている）"); mis(-c1 * A * A + c2 * A * B - c3 * B, "負の数の 2乗の符号ミス（(−a)² は正）");
+        setResult(qHead() + "a=" + A + "、b=" + B + " のとき、" + (c1 === 1 ? "" : c1) + "a²+" +
+            (c2 === 1 ? "" : c2) + "ab-" + (c3 === 1 ? "" : c3) + "b の値を求めよ");
+    }
+}
+
+// 16: 二次方程式
+function makeQuestionQuadEq() {
+    const kind = randInt(7);
+    if (kind === 0) {
+        let r = randRange(-6, 6), s2 = randRange(-6, 6);
+        while (r === s2) s2 = randRange(-6, 6);
+        if (r > s2) [r, s2] = [s2, r];
+        setVecAnswer([r, s2], "x₁ x₂");
+        misVec([-s2, -r], "解の符号が逆（(x−α)(x−β)=0 の解は x=α, β）");
+        setResult(qHead() + poly2(-(r + s2), r * s2) + "=0 を解け\n（答えは小さい順に「x₁ x₂」とスペース区切り）");
+    } else if (kind === 1) {
+        const n = randRange(2, 12);
+        correctAnswer = n;
+        mis(n * n, "平方根をとっていない（x²=k の解は √k）"); mis(n * n / 2, "x²=k の解を k÷2 としている");
+        setResult(qHead() + "x²=" + (n * n) + " の正の解を求めよ");
+    } else if (kind === 2) {
+        const a = pick([2, 3]);
+        let r = randRange(-4, 4), s2 = randRange(-4, 4);
+        while (r === s2) s2 = randRange(-4, 4);
+        if (r > s2) [r, s2] = [s2, r];
+        setVecAnswer([r, s2], "x₁ x₂");
+        misVec([-s2, -r], "解の符号が逆（解の公式の −b の符号）");
+        setResult(qHead() + polyA(a, -a * (r + s2), a * r * s2) + "=0 を解け（解の公式を使ってもよい）\n（答えは小さい順に「x₁ x₂」とスペース区切り）");
+    } else if (kind === 3) {
+        const a = pick([1, 2, 3]), r = randRange(-5, 5), s2 = randRange(-5, 5);
+        const askSum = Math.random() < 0.5;
+        correctAnswer = askSum ? r + s2 : r * s2;
+        if (askSum) { mis(-(r + s2), "和は −b/a。符号を逆にしている"); mis(-a * (r + s2), "和は −b/a。a で割っていない（−b を答えている）"); } else { mis(a * r * s2, "積は c/a。a で割っていない（c を答えている）"); }
+        setResult(qHead() + polyA(a, -a * (r + s2), a * r * s2) + "=0 の2つの解の" + (askSum ? "和" : "積") + "を求めよ");
+    } else if (kind === 4) {
+        const target = randInt(3);
+        let a, b, c, D;
+        do {
+            a = pick([1, 2, 3, -1]); b = randNZ(-6, 6); c = randNZ(-5, 5);
+            D = b * b - 4 * a * c;
+        } while ((D > 0 ? 2 : D === 0 ? 1 : 0) !== target);
+        correctAnswer = target;
+        if (target === 1) mis(2, "D=0 は重解（解は1個）。2個と数えている"); if (target === 2) mis(1, "D>0 なら異なる2つの実数解がある"); if (target === 0) mis(1, "D<0 のとき実数解は 0 個");
+        setResult(qHead() + polyA(a, b, c) + "=0 の実数解の個数を求めよ");
+    } else if (kind === 5) {
+        const a = randRange(2, 5), s2 = pick([2, 3, 5, 6, 7]);
+        setExpr(vStr(V(a, 1, s2)), true);
+        misExpr(String(a * a * s2), "平方根をとっていない（x²=k の解は √k）");
+        setResult(qHead() + "x²=" + (a * a * s2) + " の正の解を簡単な形で求めよ" + exprNote);
+    } else {
+        // x²-2px-q=0 の大きい方の解 = p+√(p²+q)
+        let p, q, w;
+        do {
+            p = randNZ(-3, 3); q = randRange(1, 6);
+            w = vSimplifyRad([1, 1], p * p + q);
+        } while (w.s === 1);
+        const m = {};
+        m[1] = fr(p, 1);
+        m[w.s] = w.c;
+        setExpr(mapToString(m), true);
+        const m2 = {}; m2[1] = fr(p, 1); m2[w.s] = [-w.c[0], w.c[1]]; misExpr(mapToString(m2), "大きい方ではなく小さい方の解を答えている");
+        setResult(qHead() + poly2(-2 * p, -q) + "=0 の大きい方の解を簡単な形で求めよ" + exprNote);
+    }
+}
+
+// 17: 三平方の定理
+const pythagTriples = [[3, 4, 5], [6, 8, 10], [5, 12, 13], [9, 12, 15], [8, 15, 17], [12, 16, 20], [7, 24, 25], [15, 20, 25], [10, 24, 26]];
+function drawRightTriangle(h, v, c) {
+    document.getElementById("図形").innerHTML = `
+    <svg width="300" height="200">
+        <polygon points="50,160 250,160 50,40" fill="none" stroke="black" stroke-width="3" />
+        <polyline points="50,140 70,140 70,160" fill="none" stroke="black" stroke-width="2" />
+        <text x="150" y="187" font-size="18" text-anchor="middle">${h}</text>
+        <text x="22" y="105" font-size="18" text-anchor="middle">${v}</text>
+        <text x="185" y="88" font-size="18" text-anchor="middle">${c}</text>
+    </svg>`;
+}
+function makeQuestionPythag() {
+    const kind = randInt(10);
+    let [a, b, c] = pick(pythagTriples);
+    if (Math.random() < 0.5) [a, b] = [b, a];
+    if (kind === 0) {
+        correctAnswer = c;
+        drawRightTriangle(a + "cm", b + "cm", "?");
+        mis(a + b, "斜辺を2辺の和にしている（三平方の定理 a²+b²=c² を使っていない）"); mis(a * a + b * b, "√を取っていない（c² を答えている）");
+        setResult(qHead() + "直角をはさむ2辺が " + a + "cm、" + b + "cm の直角三角形の斜辺の長さを求めよ");
+    } else if (kind === 1) {
+        correctAnswer = b;
+        drawRightTriangle(a + "cm", "?", c + "cm");
+        mis(c - a, "辺の差にしている（b²=c²−a² の平方根が必要）"); mis(c * c - a * a, "√を取っていない（b² を答えている）");
+        setResult(qHead() + "斜辺が " + c + "cm、1辺が " + a + "cm の直角三角形のもう1辺の長さを求めよ");
+    } else if (kind === 2) {
+        correctAnswer = c;
+        mis(a + b, "対角線を縦と横の和にしている"); mis(a * a + b * b, "√を取っていない（対角線² を答えている）");
+        setResult(qHead() + "縦 " + a + "cm、横 " + b + "cm の長方形の対角線の長さを求めよ");
+    } else if (kind === 3) {
+        const k = randRange(2, 9);
+        correctAnswer = k;
+        mis(2 * k, "対角線=1辺×√2 を 1辺×2 と考えている");
+        setResult(qHead() + "対角線の長さが " + k + "√2 cm の正方形の1辺の長さを求めよ");
+    } else if (kind === 4) {
+        const k = randRange(2, 9);
+        correctAnswer = k;
+        mis(2 * k, "斜辺をそのまま答えている（最も短い辺は斜辺の半分）"); mis(4 * k, "比 1:2 の向きが逆（斜辺の2倍にしている）");
+        setResult(qHead() + "∠A=30°、∠B=60°、∠C=90° の直角三角形で、斜辺が " + (2 * k) + "cm のとき、最も短い辺の長さを求めよ");
+    } else if (kind === 5) {
+        const isRight = Math.random() < 0.5;
+        const sides = isRight ? [a, b, c] : [a, b, c + 1];
+        correctAnswer = isRight ? 1 : 2;
+        mis(isRight ? 2 : 1, "最大の辺の2乗と、他の2辺の2乗の和を比べられていない（a²+b²=c² の確認ミス）");
+        setResult(qHead() + "3辺の長さが " + shuffled(sides).join("、") + " の三角形は直角三角形か。番号で答えよ\n1:直角三角形である\n2:直角三角形ではない");
+    } else if (kind === 6) {
+        let x, y;
+        do { x = randRange(1, 6); y = randRange(1, 6); } while (Number.isInteger(Math.sqrt(x * x + y * y)));
+        setExpr(vStr(vSimplifyRad([1, 1], x * x + y * y)), true);
+        drawRightTriangle(x + "cm", y + "cm", "?");
+        misExpr(String(x + y), "斜辺を2辺の和にしている（三平方の定理を使っていない）"); misExpr(String(x * x + y * y), "√を取っていない（c² を答えている）");
+        setResult(qHead() + "直角をはさむ2辺が " + x + "cm、" + y + "cm の直角三角形の斜辺の長さを簡単な形で求めよ" + exprNote);
+    } else if (kind === 7) {
+        const k = randRange(1, 9);
+        setExpr(vStr(V(k, 1, 2)), true);
+        mis(k, "対角線を1辺と同じ長さにしている（√2 倍を忘れている）"); mis(2 * k, "対角線を2倍にしている（正しくは √2 倍）");
+        setResult(qHead() + "1辺が " + k + "cm の正方形の対角線の長さを求めよ" + exprNote);
+    } else if (kind === 8) {
+        const k = randRange(1, 6);
+        setExpr(vStr(V(k, 1, 3)), true);
+        misExpr(vStr(V(k, 1, 2)), "√3 を √2 と取り違えている（正三角形の高さは 1辺×√3/2）"); misExpr(vStr(V(2 * k, 1, 3)), "÷2 を忘れている（高さ=1辺×√3/2）");
+        setResult(qHead() + "1辺が " + (2 * k) + "cm の正三角形の高さを求めよ" + exprNote);
+    } else {
+        const k = randRange(1, 9);
+        setExpr(vStr(V(k, 1, 3)), true);
+        misExpr(vStr(V(k, 1, 2)), "√3 を √2 と取り違えている（比は 1:2:√3）"); mis(2 * k, "斜辺を答えている（直角をはさむもう1辺ではない）");
+        setResult(qHead() + "∠A=30°、∠B=60°、∠C=90° の直角三角形で、最も短い辺が " + k + "cm のとき、直角をはさむもう1辺の長さを求めよ" + exprNote);
+    }
+}
+
+// 18: 円とおうぎ形（πの係数）
+function makeQuestionCircle() {
+    const kind = randInt(5);
+    const note = "（πの係数を答えよ）";
+    const angles = [30, 45, 60, 90, 120, 135, 150, 180, 270];
+    let r, th;
+    if (kind === 0) {
+        r = randRange(2, 12);
+        if (Math.random() < 0.5) {
+            correctAnswer = 2 * r;
+            mis(r * r, "円周と面積の公式を取り違えている（円周=2πr、面積=πr²）"); mis(r, "円周=2πr の 2 を忘れている");
+            setResult(qHead() + "半径 " + r + "cm の円の円周の長さを求めよ" + note);
+        } else {
+            correctAnswer = r * r;
+            mis(2 * r, "円周と面積の公式を取り違えている（面積=πr²）"); mis(r, "r² の 2乗を忘れている");
+            setResult(qHead() + "半径 " + r + "cm の円の面積を求めよ" + note);
+        }
+    } else if (kind === 1) {
+        const d = 2 * randRange(2, 9);
+        correctAnswer = (d / 2) * (d / 2);
+        mis(d * d, "直径をそのまま半径として使っている（r=直径÷2）");
+        setResult(qHead() + "直径 " + d + "cm の円の面積を求めよ" + note);
+    } else if (kind === 2) {
+        do { r = randRange(2, 12); th = pick(angles); } while ((r * th) % 180 !== 0);
+        correctAnswer = r * th / 180;
+        mis(r * r * th / 360, "弧の長さと面積の公式を取り違えている（弧=2πr×θ/360）"); mis(2 * r, "中心角の割合 θ/360 を掛けていない（円周を答えている）");
+        setResult(qHead() + "半径 " + r + "cm、中心角 " + th + "° のおうぎ形の弧の長さを求めよ" + note);
+    } else if (kind === 3) {
+        do { r = randRange(2, 12); th = pick(angles); } while ((r * r * th) % 360 !== 0);
+        correctAnswer = r * r * th / 360;
+        mis(r * th / 180, "面積と弧の長さの公式を取り違えている（面積=πr²×θ/360）"); mis(r * r, "中心角の割合 θ/360 を掛けていない（円の面積を答えている）");
+        setResult(qHead() + "半径 " + r + "cm、中心角 " + th + "° のおうぎ形の面積を求めよ" + note);
+    } else {
+        do { r = randRange(2, 12); th = pick(angles); } while ((r * th) % 180 !== 0);
+        correctAnswer = th;
+        mis(2 * th, "弧の長さの公式で 2π の 2 を落としている"); mis(th / 2, "弧の長さの公式で 2 を余計に掛けている");
+        setResult(qHead() + "半径 " + r + "cm、弧の長さ " + (r * th / 180) + "π cm のおうぎ形の中心角は何度か");
+    }
+}
+
+// 19: 立体の体積・表面積
+function makeQuestionSolid() {
+    const kind = randInt(8);
+    const note = "（πの係数を答えよ）";
+    if (kind === 0) {
+        const a = randRange(2, 8), b = randRange(2, 8), c = randRange(2, 8);
+        correctAnswer = a * b * c;
+        mis(2 * (a * b + b * c + c * a), "体積と表面積を取り違えている"); mis(a + b + c, "掛け算でなく足し算にしている");
+        setResult(qHead() + "たて" + a + "cm、よこ" + b + "cm、高さ" + c + "cm の直方体の体積を求めよ");
+    } else if (kind === 1) {
+        const a = randRange(2, 8), b = randRange(2, 8), c = randRange(2, 8);
+        correctAnswer = 2 * (a * b + b * c + c * a);
+        mis(a * b * c, "表面積と体積を取り違えている"); mis(a * b + b * c + c * a, "2倍を忘れている（向かい合う面が2つずつある）");
+        setResult(qHead() + "たて" + a + "cm、よこ" + b + "cm、高さ" + c + "cm の直方体の表面積を求めよ");
+    } else if (kind === 2) {
+        const r = randRange(2, 6), h = randRange(2, 9);
+        correctAnswer = r * r * h;
+        mis(r * h, "底面積 πr² の 2乗を忘れている"); mis(2 * r * r + 2 * r * h, "体積と表面積を取り違えている"); mis(r * r * h / 3, "÷3 をつけている（柱の体積=底面積×高さ）");
+        setResult(qHead() + "底面の半径 " + r + "cm、高さ " + h + "cm の円柱の体積を求めよ" + note);
+    } else if (kind === 3) {
+        const r = randRange(2, 6), h = randRange(2, 9);
+        correctAnswer = 2 * r * r + 2 * r * h;
+        mis(r * r * h, "表面積と体積を取り違えている"); mis(2 * r * h, "底面（上下の円）を足していない"); mis(2 * r * r, "側面積を足していない");
+        setResult(qHead() + "底面の半径 " + r + "cm、高さ " + h + "cm の円柱の表面積を求めよ" + note);
+    } else if (kind === 4) {
+        let r, h;
+        do { r = randRange(2, 6); h = randRange(3, 12); } while ((r * r * h) % 3 !== 0);
+        correctAnswer = r * r * h / 3;
+        mis(r * r * h, "÷3 を忘れている（錐の体積=底面積×高さ÷3）");
+        setResult(qHead() + "底面の半径 " + r + "cm、高さ " + h + "cm の円錐の体積を求めよ" + note);
+    } else if (kind === 5) {
+        let a, h;
+        do { a = randRange(3, 9); h = randRange(3, 12); } while ((a * a * h) % 3 !== 0);
+        correctAnswer = a * a * h / 3;
+        mis(a * a * h, "÷3 を忘れている（錐の体積=底面積×高さ÷3）");
+        setResult(qHead() + "底面が1辺 " + a + "cm の正方形で、高さ " + h + "cm の四角錐の体積を求めよ");
+    } else if (kind === 6) {
+        const r = pick([3, 6]);
+        correctAnswer = 4 * r * r * r / 3;
+        mis(4 * r * r, "体積と表面積を取り違えている（球の体積=4/3πr³）"); mis(r * r * r, "4/3 を掛けていない"); mis(4 * r * r * r, "÷3 を忘れている（球の体積=4/3πr³）");
+        setResult(qHead() + "半径 " + r + "cm の球の体積を求めよ" + note);
+    } else {
+        const r = randRange(2, 9);
+        correctAnswer = 4 * r * r;
+        mis(4 * r * r * r / 3, "表面積と体積を取り違えている（球の表面積=4πr²）"); mis(r * r, "4 を掛けていない");
+        setResult(qHead() + "半径 " + r + "cm の球の表面積を求めよ" + note);
+    }
+}
+
+// 20: 角度
+function makeQuestionAngle() {
+    const kind = randInt(7);
+    const ns = [3, 4, 5, 6, 8, 9, 10, 12];
+    if (kind === 0) {
+        const n = randRange(3, 10);
+        correctAnswer = 180 * (n - 2);
+        mis(180 * n, "(n−2) の −2 を忘れている（内角の和=180°×(n−2)）"); mis(360, "外角の和（360°）と混同している"); mis(180 * (n - 1), "(n−2) を (n−1) にしている");
+        setResult(qHead() + n + "角形の内角の和は何度か");
+    } else if (kind === 1) {
+        const n = pick(ns);
+        correctAnswer = 180 * (n - 2) / n;
+        mis(360 / n, "外角を答えている（内角=180°−外角）"); mis(180 * (n - 2), "内角の和を n で割っていない");
+        setResult(qHead() + "正" + n + "角形の1つの内角は何度か");
+    } else if (kind === 2) {
+        const n = pick(ns);
+        correctAnswer = 360 / n;
+        mis(180 - 360 / n, "内角を答えている（外角=360°÷n）");
+        setResult(qHead() + "正" + n + "角形の1つの外角は何度か");
+    } else if (kind === 3) {
+        const a = randRange(30, 80), b = randRange(30, 80);
+        correctAnswer = 180 - a - b;
+        mis(a + b, "外角（a+b）を答えている（内角 ∠C=180°−a−b）"); mis(360 - a - b, "180° ではなく 360° から引いている");
+        setResult(qHead() + "三角形ABCで ∠A=" + a + "°、∠B=" + b + "° のとき、∠C は何度か");
+    } else if (kind === 4) {
+        const a = randRange(30, 80), b = randRange(30, 80);
+        correctAnswer = a + b;
+        mis(180 - a - b, "∠C の内角を答えている（外角は他の2つの内角の和）");
+        setResult(qHead() + "三角形ABCで ∠A=" + a + "°、∠B=" + b + "° のとき、∠C の外角は何度か");
+    } else if (kind === 5) {
+        const half = randRange(10, 85);
+        if (Math.random() < 0.5) {
+            correctAnswer = half;
+            mis(2 * half, "円周角と中心角を取り違えている（円周角=中心角÷2）");
+            setResult(qHead() + "中心角が " + (2 * half) + "° の弧に対する円周角は何度か");
+        } else {
+            correctAnswer = 2 * half;
+            mis(half / 2, "円周角と中心角を逆にしている（中心角=円周角×2）"); mis(half, "円周角と中心角を同じ大きさと考えている");
+            setResult(qHead() + "円周角が " + half + "° の弧に対する中心角は何度か");
+        }
+    } else {
+        const apex = 2 * randRange(10, 60);
+        correctAnswer = (180 - apex) / 2;
+        mis(180 - apex, "底角の和を答えている（÷2 を忘れている）"); mis(90 - apex, "底角の求め方を取り違えている（(180°−頂角)÷2）");
+        setResult(qHead() + "二等辺三角形で頂角が " + apex + "° のとき、1つの底角は何度か");
+    }
+}
+
+// 21: 場合の数と確率
+function makeQuestionCount() {
+    const kind = randInt(7);
+    if (kind === 0) {
+        const n = randRange(4, 9), r = randRange(2, 3);
+        correctAnswer = perm(n, r);
+        mis(comb(n, r), "順列と組合せを取り違えている（nPr は r! で割らない）"); mis(Math.pow(n, r), "重複を許して数えている（nʳ）");
+        setResult(qHead() + n + "P" + r + " の値を求めよ");
+    } else if (kind === 1) {
+        const n = randRange(5, 10), r = randRange(2, 3);
+        correctAnswer = comb(n, r);
+        mis(perm(n, r), "組合せと順列を取り違えている（nCr=nPr÷r!）"); mis(n * r, "n と r を掛けている");
+        setResult(qHead() + n + "C" + r + " の値を求めよ");
+    } else if (kind === 2) {
+        const n = randRange(3, 6);
+        correctAnswer = perm(n, n);
+        mis(n * n, "n! を n² にしている"); mis(n, "階乗を取っていない");
+        setResult(qHead() + n + "人が一列に並ぶ並び方は何通りか");
+    } else if (kind === 3) {
+        const a = randRange(2, 5), b = randRange(2, 5), c = randRange(2, 4);
+        correctAnswer = a * b * c;
+        mis(a + b + c, "積の法則なのに足し算にしている（組合せは掛け算）");
+        setResult(qHead() + "シャツが " + a + " 種類、ズボンが " + b + " 種類、くつが " + c + " 種類ある。すべての組合せは何通りか");
+    } else if (kind === 4) {
+        const sum = randRange(2, 12);
+        correctAnswer = 6 - Math.abs(sum - 7);
+        mis(sum - 1, "目の最大値 6 を考えずに数えている"); mis(6, "和にかかわらず 6 通りとしている");
+        setResult(qHead() + "大小2個のさいころを投げるとき、目の和が " + sum + " になる場合は何通りか");
+    } else if (kind === 5) {
+        const sum = randRange(2, 12);
+        const cnt = 6 - Math.abs(sum - 7), g = gcd(cnt, 36);
+        setVecAnswer([cnt / g, 36 / g], "分子 分母");
+        misVec([cnt, 36], "約分していない（既約分数にしていない）"); misVec([cnt, 6], "全事象を 6 通りにしている（2個のさいころは 36 通り）");
+        setResult(qHead() + "大小2個のさいころを投げるとき、目の和が " + sum + " になる確率を既約分数 a/b で表す。a と b を求めよ" + vecHint("a", "b"));
+    } else {
+        const red = randRange(1, 6), white = randRange(1, 6), g = gcd(red, red + white);
+        setVecAnswer([red / g, (red + white) / g], "分子 分母");
+        const g2 = gcd(red, white); misVec([red / g2, white / g2], "分母を全体の個数ではなく白玉の個数にしている"); misVec([red, red + white], "約分していない（既約分数にしていない）");
+        setResult(qHead() + "赤玉 " + red + " 個、白玉 " + white + " 個が入った袋から1個取り出すとき、赤玉が出る確率を既約分数 a/b で表す。a と b を求めよ" + vecHint("a", "b"));
+    }
+}
+
+// 22: 資料の整理とデータ分析
+const devSets = [[-3, -1, 1, 3], [-2, 0, 0, 2], [-4, -2, 2, 4], [-1, -1, 1, 1], [-3, -3, 3, 3], [-2, -2, 2, 2],
+    [-2, -1, 0, 1, 2], [-4, -2, 0, 2, 4], [-3, -1, 0, 1, 3], [-3, 0, 3], [-6, 0, 6]];
+function makeQuestionData() {
+    const kind = randInt(7);
+    const sumOf = arr => arr.reduce((p, c) => p + c, 0);
+    if (kind === 0) {
+        const d = Array.from({ length: 5 }, () => randRange(2, 12));
+        d[4] += (5 - sumOf(d) % 5) % 5;
+        correctAnswer = sumOf(d) / 5;
+        mis(sumOf(d), "合計を答えている（個数で割っていない）"); mis(sumOf(d) / 4, "個数を間違えている（データの個数は 5）");
+        setResult(qHead() + "データ " + d.join(", ") + " の平均値を求めよ");
+    } else if (kind === 1) {
+        const n = pick([5, 7]);
+        const d = Array.from({ length: n }, () => randRange(1, 20));
+        correctAnswer = d.slice().sort((x, y) => x - y)[(n - 1) / 2];
+        mis(d[(n - 1) / 2], "小さい順に並べ替えずに真ん中の位置を選んでいる");
+        setResult(qHead() + "データ " + d.join(", ") + " の中央値を求めよ");
+    } else if (kind === 2) {
+        const pool = shuffled([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        const m = pool[0];
+        const d = shuffled([m, m, m, pool[1], pool[2], pool[3], pool[4]]);
+        correctAnswer = m;
+        mis(Math.max(...d), "最頻値でなく最大値を答えている"); mis(Math.min(...d), "最頻値でなく最小値を答えている");
+        setResult(qHead() + "データ " + d.join(", ") + " の最頻値（モード）を求めよ");
+    } else if (kind === 3) {
+        const d = Array.from({ length: 6 }, () => randRange(1, 30));
+        correctAnswer = Math.max(...d) - Math.min(...d);
+        mis(Math.max(...d), "最大値を答えている（範囲=最大値−最小値）"); mis(Math.max(...d) + Math.min(...d), "最大値と最小値を足している");
+        setResult(qHead() + "データ " + d.join(", ") + " の範囲（レンジ）を求めよ");
+    } else if (kind === 4) {
+        const dev = pick(devSets), m = randRange(5, 20);
+        correctAnswer = sumOf(dev.map(x => x * x)) / dev.length;
+        mis(Math.sqrt(correctAnswer), "標準偏差を答えている（分散は平方する前の値）"); mis(sumOf(dev.map(x => x * x)), "個数で割っていない（偏差の2乗の和のままにしている）"); mis(sumOf(dev.map(x => x * x)) / (dev.length - 1), "n−1 で割っている（分散は n で割る）");
+        setResult(qHead() + "データ " + shuffled(dev.map(x => x + m)).join(", ") + " の分散を求めよ");
+    } else if (kind === 5) {
+        const dev = pick([[-1, -1, 1, 1], [-2, -2, 2, 2], [-3, -3, 3, 3]]), m = randRange(5, 20);
+        correctAnswer = Math.sqrt(sumOf(dev.map(x => x * x)) / dev.length);
+        mis(correctAnswer * correctAnswer, "分散を答えている（標準偏差は √分散）");
+        setResult(qHead() + "データ " + shuffled(dev.map(x => x + m)).join(", ") + " の標準偏差を求めよ");
+    } else {
+        const m = randRange(2, 9), v = randRange(1, 9);
+        correctAnswer = v;
+        mis(m * m + v, "x² の平均をそのまま答えている（分散=x²の平均−平均²）"); mis(m * m + v + m * m, "平均² を引かずに足している");
+        setResult(qHead() + "変量x について、x の平均が " + m + "、x² の平均が " + (m * m + v) + " のとき、x の分散を求めよ");
+    }
+}
+
+// 23: 数列
+function makeQuestionSequence() {
+    const kind = randInt(8);
+    if (kind === 0) {
+        const a = randNZ(-5, 10), d = randNZ(-4, 5), n = randRange(5, 12);
+        correctAnswer = a + (n - 1) * d;
+        mis(a + n * d, "(n−1) を n にしている（aₙ=a+(n−1)d）"); mis(a + (n - 2) * d, "(n−1) を (n−2) にしている");
+        setResult(qHead() + "初項 " + a + "、公差 " + d + " の等差数列の第 " + n + " 項を求めよ");
+    } else if (kind === 1) {
+        const a = randNZ(-5, 10), d = randNZ(-4, 5), n = randRange(4, 10);
+        correctAnswer = n * (2 * a + (n - 1) * d) / 2;
+        mis(n * (2 * a + (n - 1) * d), "÷2 を忘れている（S=n(2a+(n−1)d)/2）"); mis(n * (2 * a + n * d) / 2, "(n−1) を n にしている"); mis(a + (n - 1) * d, "和ではなく第n項を答えている");
+        setResult(qHead() + "初項 " + a + "、公差 " + d + " の等差数列の初項から第 " + n + " 項までの和を求めよ");
+    } else if (kind === 2) {
+        const a = randRange(1, 3), r = pick([2, 3, -2]), n = randRange(3, 6);
+        correctAnswer = a * Math.pow(r, n - 1);
+        mis(a * Math.pow(r, n), "指数を n にしている（aₙ=a·rⁿ⁻¹）"); mis(a * r * (n - 1), "累乗を掛け算にしている");
+        setResult(qHead() + "初項 " + a + "、公比 " + r + " の等比数列の第 " + n + " 項を求めよ");
+    } else if (kind === 3) {
+        const a = randRange(1, 3), r = pick([2, 3]), n = randRange(3, 6);
+        correctAnswer = a * (Math.pow(r, n) - 1) / (r - 1);
+        mis(a * (Math.pow(r, n) - 1), "r−1 で割っていない（S=a(rⁿ−1)/(r−1)）"); mis(a * Math.pow(r, n - 1), "和ではなく第n項を答えている");
+        setResult(qHead() + "初項 " + a + "、公比 " + r + " の等比数列の初項から第 " + n + " 項までの和を求めよ");
+    } else if (kind === 4) {
+        const t = randInt(3), n = t === 2 ? randRange(3, 6) : randRange(3, 8);
+        const f = [n * (n + 1) / 2, n * (n + 1) * (2 * n + 1) / 6, Math.pow(n * (n + 1) / 2, 2)];
+        correctAnswer = f[t];
+        if (t === 0) mis(n * (n + 1), "÷2 を忘れている（Σk=n(n+1)/2）"); if (t === 1) { mis(n * (n + 1) * (2 * n + 1), "÷6 を忘れている（Σk²=n(n+1)(2n+1)/6）"); mis(f[0] * f[0], "Σk² を (Σk)² にしている"); } if (t === 2) mis(f[0], "Σk³ を Σk にしている（Σk³=(n(n+1)/2)²）");
+        setResult(qHead() + "Σ[k=1→" + n + "] " + ["k", "k²", "k³"][t] + " の値を求めよ");
+    } else if (kind === 5) {
+        const a1 = randRange(1, 3), p = pick([2, 3, -1]), q = randRange(-2, 3), k = randRange(4, 5);
+        let a = a1;
+        for (let i = 1; i < k; i++) a = p * a + q;
+        correctAnswer = a;
+        let w1 = a1; for (let i = 1; i < k; i++) w1 = p * w1; mis(w1, "定数項 +q を忘れている（漸化式の q を無視している）"); let w2 = a1; for (let i = 1; i < k + 1; i++) w2 = p * w2 + q; mis(w2, "項番号をずらしている（次の項を答えている）");
+        setResult(qHead() + "a" + sub(1) + "=" + a1 + "、a" + sub("n+1") + "=" + leadCoef(p) + "a" + sub("n") + constTerm(q) +
+            " のとき、a" + sub(k) + " を求めよ");
+    } else if (kind === 6) {
+        const a = randRange(-5, 5), d = randNZ(-4, 5), n = randRange(5, 15);
+        correctAnswer = n;
+        mis(n - 1, "+1 を忘れている（項数=(末項−初項)÷公差+1）");
+        setResult(qHead() + "初項 " + a + "、公差 " + d + " の等差数列で、末項が " + (a + (n - 1) * d) + " のとき、項数を求めよ");
+    } else {
+        if (Math.random() < 0.5) {
+            const a = randRange(-8, 8), x = randRange(-8, 8);
+            correctAnswer = x;
+            setResult(qHead() + a + "、□、" + (2 * x - a) + " が等差数列をなすとき、□ に入る数を求めよ");
+        } else {
+            const t = pick([[2, 8, 4], [3, 27, 9], [4, 16, 8], [1, 9, 3], [5, 20, 10], [2, 18, 6], [3, 12, 6], [4, 9, 6], [1, 25, 5], [8, 18, 12]]);
+            correctAnswer = t[2];
+            setResult(qHead() + t[0] + "、□、" + t[1] + " が等比数列をなすとき、□ に入る正の数を求めよ");
+        }
+    }
+}
+
+// 24: 指数・対数
+const fracPowers = [[4, 1, 2, 2], [9, 1, 2, 3], [64, 1, 2, 8], [8, 1, 3, 2], [27, 1, 3, 3], [8, 2, 3, 4], [27, 2, 3, 9],
+    [16, 3, 4, 8], [16, 1, 4, 2], [125, 2, 3, 25], [32, 1, 5, 2], [81, 3, 4, 27], [100, 1, 2, 10], [25, 3, 2, 125], [4, 3, 2, 8]];
+const logSums = [[6, 4, 9, 2], [6, 2, 18, 2], [6, 3, 12, 2], [10, 4, 25, 2], [10, 2, 50, 2], [10, 5, 200, 3], [10, 25, 40, 3],
+    [12, 4, 36, 2], [12, 8, 18, 2], [15, 3, 75, 2], [15, 5, 45, 2]];
+const logDiffs = [[2, 48, 3, 4], [2, 40, 5, 3], [3, 54, 2, 3], [3, 36, 4, 2], [10, 5000, 5, 3], [10, 300, 3, 2]];
+function makeQuestionExpLog() {
+    const kind = randInt(8);
+    if (kind === 0) {
+        const a = randRange(2, 5), m = randRange(2, 6), n = randRange(2, 6);
+        correctAnswer = m + n;
+        mis(m * n, "指数法則の取り違え（掛け算は指数を足す）");
+        setResult(qHead() + a + sup(m) + "×" + a + sup(n) + "=" + a + "^□ のとき、□ を求めよ");
+    } else if (kind === 1) {
+        const a = randRange(2, 5), m = randRange(2, 4), n = randRange(2, 4);
+        correctAnswer = m * n;
+        mis(m + n, "指数法則の取り違え（累乗の累乗は指数を掛ける）");
+        setResult(qHead() + "(" + a + sup(m) + ")" + sup(n) + "=" + a + "^□ のとき、□ を求めよ");
+    } else if (kind === 2) {
+        const a = randRange(2, 5), n = randRange(2, 4), m = n + randRange(1, 4);
+        correctAnswer = m - n;
+        mis(m / n, "指数法則の取り違え（割り算は指数を引く）"); mis(m + n, "割り算なのに指数を足している");
+        setResult(qHead() + a + sup(m) + "÷" + a + sup(n) + "=" + a + "^□ のとき、□ を求めよ");
+    } else if (kind === 3) {
+        if (Math.random() < 0.15) {
+            const a = randRange(2, 9);
+            correctAnswer = 1;
+            mis(0, "a⁰=1（0乗は 1）を 0 としている");
+            setResult(qHead() + a + "⁰ の値を求めよ");
+        } else {
+            const a = randRange(2, 5), n = randRange(2, a === 2 ? 7 : 4);
+            correctAnswer = Math.pow(a, n);
+            mis(a * n, "累乗を掛け算にしている（aⁿ ≠ a×n）"); mis(Math.pow(a, n - 1), "指数を1つ少なく計算している");
+            setResult(qHead() + a + sup(n) + " の値を求めよ");
+        }
+    } else if (kind === 4) {
+        const t = pick(fracPowers);
+        correctAnswer = t[3];
+        mis(t[0] * t[1] / t[2], "分数指数の意味の取り違え（b^(p/q) は q乗根の p乗）");
+        setResult(qHead() + t[0] + "^(" + t[1] + "/" + t[2] + ") の値を求めよ");
+    } else if (kind === 5) {
+        const a = pick([2, 3, 4, 5, 10]), n = randRange(0, a === 10 ? 3 : 4);
+        correctAnswer = n;
+        mis(Math.pow(a, n), "真数をそのまま答えている（log_a aⁿ = n）"); mis(a, "底を答えている");
+        setResult(qHead() + "log" + sub(a) + " " + Math.pow(a, n) + " の値を求めよ");
+    } else if (kind === 6) {
+        const t = pick(logSums);
+        correctAnswer = t[3];
+        mis(t[1] + t[2], "log の和を真数の和にしている（log x + log y = log xy）");
+        setResult(qHead() + "log" + sub(t[0]) + " " + t[1] + " + log" + sub(t[0]) + " " + t[2] + " の値を求めよ");
+    } else {
+        const t = pick(logDiffs);
+        correctAnswer = t[3];
+        mis(t[1] - t[2], "log の差を真数の差にしている（log x − log y = log (x/y)）");
+        setResult(qHead() + "log" + sub(t[0]) + " " + t[1] + " - log" + sub(t[0]) + " " + t[2] + " の値を求めよ");
+    }
+}
+
+// 25: 正弦定理・余弦定理
+const cosList = [[3, 8, 60, 7], [8, 3, 60, 7], [5, 8, 60, 7], [8, 5, 60, 7], [7, 15, 60, 13], [15, 7, 60, 13], [5, 21, 60, 19],
+    [3, 5, 120, 7], [5, 3, 120, 7], [7, 8, 120, 13], [8, 7, 120, 13], [5, 16, 120, 19]];
+function makeQuestionTriLaw() {
+    const kind = randInt(9);
+    if (kind === 0) {
+        const t = pick(cosList);
+        correctAnswer = t[3];
+        mis(t[3] * t[3], "c² を答えている（平方根をとっていない）"); mis(t[0] + t[1], "辺の和を答えている（余弦定理を使っていない）");
+        setResult(qHead() + "△ABCで a=" + t[0] + "、b=" + t[1] + "、∠C=" + t[2] + "° のとき、c の値を求めよ（c²=a²+b²-2ab cosC）");
+    } else if (kind === 1) {
+        const t = pick(cosList);
+        correctAnswer = t[2];
+        mis(180 - t[2], "cosC の符号を取り違えている（60° と 120° が逆）");
+        setResult(qHead() + "△ABCで a=" + t[0] + "、b=" + t[1] + "、c=" + t[3] + " のとき、∠C は何度か（60° か 120°）");
+    } else if (kind === 2) {
+        const A = pick([30, 90, 150]), k = randRange(2, 8);
+        const a = A === 90 ? 2 * k : k + 1;
+        correctAnswer = A === 90 ? a / 2 : a;
+        mis(2 * correctAnswer, "a/sinA=2R の 2 を忘れている（直径を答えている）");
+        setResult(qHead() + "△ABCで a=" + a + "、∠A=" + A + "° のとき、外接円の半径 R を求めよ（a/sinA=2R）");
+    } else if (kind === 3) {
+        const t = pick([[30, 90, 2, 1], [90, 30, 1, 2]]);
+        const a = t[3] * randRange(1, 6);
+        correctAnswer = a * t[2] / t[3];
+        mis(a * t[3] / t[2], "比の向きが逆（b=a×sinB/sinA を逆にしている）");
+        setResult(qHead() + "△ABCで ∠A=" + t[0] + "°、∠B=" + t[1] + "°、a=" + a + " のとき、b を求めよ（a/sinA=b/sinB）");
+    } else if (kind === 4) {
+        const C = pick([30, 90, 150]);
+        let a, b;
+        do { a = randRange(2, 10); b = randRange(2, 10); } while ((a * b) % (C === 90 ? 2 : 4) !== 0);
+        correctAnswer = C === 90 ? a * b / 2 : a * b / 4;
+        mis(a * b, "S=1/2·ab·sinC の 1/2 と sinC を掛けていない"); mis(a * b / 2, "sinC を掛けていない（C=90° 以外では sinC≠1）");
+        setResult(qHead() + "△ABCで a=" + a + "、b=" + b + "、∠C=" + C + "° のとき、面積を求めよ（S=1/2 ab sinC）");
+    } else if (kind === 5) {
+        const angs = [30, 45, 60, 120, 135, 150];
+        let A, B, a, r;
+        do {
+            A = pick(angs); B = pick(angs); a = randRange(2, 12);
+            r = vDiv(vMul(V(a, 1, 1), T.sin[B]), T.sin[A]);
+        } while (A === B || A + B >= 180 || r.c[1] !== 1);
+        setExpr(vStr(r), true);
+        misExpr(vStr(vDiv(vMul(V(a, 1, 1), T.sin[A]), T.sin[B])), "比の向きが逆（b=a×sinB/sinA を逆にしている）");
+        setResult(qHead() + "△ABCで ∠A=" + A + "°、∠B=" + B + "°、a=" + a + " のとき、b を簡単な形で求めよ（a/sinA=b/sinB）" + exprNote);
+    } else if (kind === 6) {
+        const angs = [30, 45, 60, 120, 135, 150];
+        let A, a, r;
+        do {
+            A = pick(angs); a = randRange(2, 12);
+            r = vDiv(V(a, 1, 1), vMul(V(2, 1, 1), T.sin[A]));
+        } while (r.c[1] !== 1);
+        setExpr(vStr(r), true);
+        misExpr(vStr(vDiv(V(a, 1, 1), T.sin[A])), "a/sinA=2R の 2 を忘れている（直径を答えている）");
+        setResult(qHead() + "△ABCで a=" + a + "、∠A=" + A + "° のとき、外接円の半径 R を簡単な形で求めよ（a/sinA=2R）" + exprNote);
+    } else if (kind === 7) {
+        const Cs = [45, 60, 120, 135];
+        let C, a, b, r;
+        do {
+            C = pick(Cs); a = randRange(2, 10); b = randRange(2, 10);
+            r = vMul(V(a * b, 2, 1), T.sin[C]);
+        } while (r.c[1] !== 1);
+        setExpr(vStr(r), true);
+        misExpr(vStr(vMul(V(a * b, 1, 1), T.sin[C])), "S=1/2 ab sinC の 1/2 を忘れている"); misExpr(vStr(V(a * b, 2, 1)), "sinC を掛けていない");
+        setResult(qHead() + "△ABCで a=" + a + "、b=" + b + "、∠C=" + C + "° のとき、面積を簡単な形で求めよ（S=1/2 ab sinC）" + exprNote);
+    } else {
+        const a = randRange(3, 8), b = randRange(3, 8), c = randRange(Math.abs(a - b) + 1, a + b - 1);
+        const f = fr(a * a + b * b - c * c, 2 * a * b);
+        setExpr(f[1] === 1 ? String(f[0]) : f[0] + "/" + f[1], false);
+        misExpr(frStr(fr(a * a + b * b - c * c, a * b)), "分母の 2ab の 2 を忘れている"); misExpr(frStr(fr(c * c - a * a - b * b, 2 * a * b)), "分子の引く順序が逆（符号が逆）"); misExpr(frStr(fr(a * a + b * b + c * c, 2 * a * b)), "c² を足している（cosC=(a²+b²−c²)/2ab）");
+        setResult(qHead() + "△ABCで a=" + a + "、b=" + b + "、c=" + c + " のとき、cosC の値を分数で求めよ（c²=a²+b²-2ab cosC）");
+    }
+}
+
+// 26: 微分・積分
+function polyCubic(a, b, c, d) {
+    return leadCoef(a) + "x³" + (b === 0 ? "" : (b < 0 ? "-" : "+") + absCoef(b) + "x²") +
+        (c === 0 ? "" : (c < 0 ? "-" : "+") + absCoef(c) + "x") + constTerm(d);
+}
+function makeQuestionCalculus() {
+    const kind = randInt(8);
+    const aList = [1, 2, 3, -1, -2];
+    if (kind === 0) {
+        const a = pick(aList), b = randRange(-5, 5), c = randNZ(-5, 5), k = randNZ(-3, 3);
+        correctAnswer = 2 * a * k + b;
+        mis(a * k * k + b * k + c, "f(k) を計算している（微分していない）"); mis(a * k + b, "x² の微分を x にしている（2 を掛け忘れ）"); mis(2 * a * k + b + c, "定数項 c も残している（定数の微分は 0）");
+        setResult(qHead() + "f(x)=" + polyA(a, b, c) + " のとき、f'(" + k + ") の値を求めよ");
+    } else if (kind === 1) {
+        const a = pick(aList), b = randRange(-3, 3), c = randRange(-5, 5), d = randNZ(-5, 5), k = randNZ(-2, 2);
+        correctAnswer = 3 * a * k * k + 2 * b * k + c;
+        mis(a * k * k * k + b * k * k + c * k + d, "f(k) を計算している（微分していない）"); mis(3 * a * k * k + 2 * b * k + c + d, "定数項 d も残している（定数の微分は 0）"); mis(a * k * k + b * k + c, "指数を下ろさずに次数だけ下げている");
+        setResult(qHead() + "f(x)=" + polyCubic(a, b, c, d) + " のとき、f'(" + k + ") の値を求めよ");
+    } else if (kind === 2) {
+        const n = randRange(2, 8);
+        correctAnswer = n;
+        mis(n - 1, "係数に n ではなく n−1 を入れている（(xⁿ)'=nxⁿ⁻¹）"); mis(1, "係数を 1 のままにしている（指数を下ろしていない）");
+        setResult(qHead() + "f(x)=x" + sup(n) + " のとき、f'(x)=□x" + sup(n - 1) + " である。□ を求めよ");
+    } else if (kind === 3) {
+        const a = randNZ(-4, 4), n = randRange(2, 5);
+        correctAnswer = a * n;
+        mis(a, "指数 n を下ろして掛けていない"); mis(a * (n - 1), "係数に n−1 を掛けている（n を掛ける）");
+        setResult(qHead() + "f(x)=" + a + "x" + sup(n) + " のとき、f'(1) の値を求めよ");
+    } else if (kind === 4) {
+        const p = randRange(1, 4);
+        correctAnswer = p;
+        mis(p * p, "x²=p² から x を求めていない（平方根をとっていない）"); mis(3 * p * p, "f'(x)=0 の式の係数をそのまま答えている");
+        setResult(qHead() + "f(x)=x³-" + (3 * p * p) + "x は x=□（□>0）で極小になる。□ を求めよ");
+    } else if (kind === 5) {
+        const m = randRange(1, 3), n = randRange(-3, 3), r = randRange(-4, 4), k = randRange(1, 3);
+        correctAnswer = m * k * k * k + n * k * k + r * k;
+        mis(3 * m * k * k + 2 * n * k + r, "積分すべきところを微分している"); mis(m * k * k * k + n * k * k + r, "定数項の積分（∫r dx=rx）で k を掛けていない"); mis(m * k * k * k + n * k * k, "定数項 r の積分を忘れている");
+        setResult(qHead() + "定積分 ∫[0→" + k + "] (" + polyA(3 * m, 2 * n, r) + ") dx の値を求めよ");
+    } else if (kind === 6) {
+        const m = randRange(1, 3), n = randRange(-3, 3), lo = randRange(-3, 1), hi = lo + randRange(1, 4);
+        correctAnswer = m * (hi * hi - lo * lo) + n * (hi - lo);
+        mis(m * (lo * lo - hi * hi) + n * (lo - hi), "上端と下端を逆にしている（F(b)−F(a)）"); mis(m * (hi * hi + lo * lo) + n * (hi + lo), "F(b)−F(a) を F(b)+F(a) にしている");
+        setResult(qHead() + "定積分 ∫[" + lo + "→" + hi + "] (" + leadCoef(2 * m) + "x" + constTerm(n) + ") dx の値を求めよ");
+    } else {
+        const n = randRange(1, 6);
+        correctAnswer = n + 1;
+        mis(n, "積分で指数を n のままにしている（n+1 になる）"); mis(n - 1, "微分と取り違えている（指数を下げている）");
+        setResult(qHead() + "∫x" + sup(n) + " dx = (1/□)x" + sup(n + 1) + " + C のとき、□ を求めよ");
+    }
+}
+
+// 27: 図形と方程式
+function makeQuestionCoord() {
+    const kind = randInt(10);
+    const pt = (x, y) => "(" + x + ", " + y + ")";
+    if (kind === 0) {
+        const t = pick([[3, 4], [4, 3], [6, 8], [8, 6], [5, 12], [12, 5]]);
+        const x1 = randRange(-5, 5), y1 = randRange(-5, 5);
+        const x2 = x1 + t[0] * pick([1, -1]), y2 = y1 + t[1] * pick([1, -1]);
+        correctAnswer = Math.sqrt(t[0] * t[0] + t[1] * t[1]);
+        mis(t[0] + t[1], "2点間の距離を座標の差の和にしている（√(Δx²+Δy²) を使っていない）"); mis(t[0] * t[0] + t[1] * t[1], "√を取っていない（距離² を答えている）");
+        setResult(qHead() + "2点 A" + pt(x1, y1) + "、B" + pt(x2, y2) + " の距離 AB を求めよ");
+    } else if (kind === 1) {
+        const mx = randRange(-5, 5), my = randRange(-5, 5), dx = randNZ(-4, 4), dy = randNZ(-4, 4);
+        setVecAnswer([mx, my], "x y");
+        misVec([2 * mx, 2 * my], "÷2 を忘れている（中点は座標の平均）"); misVec([dx, dy], "平均ではなく差の半分を答えている");
+        setResult(qHead() + "2点 A" + pt(mx - dx, my - dy) + "、B" + pt(mx + dx, my + dy) + " の中点の座標を求めよ" + vecHint("x座標", "y座標"));
+    } else if (kind === 2) {
+        const m = randNZ(-4, 4), x1 = randRange(-4, 4), y1 = randRange(-4, 4), dx = randRange(1, 3);
+        correctAnswer = m;
+        mis(1 / m, "傾きを Δx/Δy にしている（傾き=Δy/Δx）");
+        setResult(qHead() + "2点 A" + pt(x1, y1) + "、B" + pt(x1 + dx, y1 + m * dx) + " を通る直線の傾きを求めよ");
+    } else if (kind === 3) {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), r = randRange(2, 9);
+        setVecAnswer([a, b], "x y");
+        misVec([-a, -b], "中心の符号を逆にしている（(x−a)² の a が中心の x座標）");
+        setResult(qHead() + "円 (x" + constTerm(-a) + ")²+(y" + constTerm(-b) + ")²=" + (r * r) + " の中心の座標を求めよ" + vecHint("x座標", "y座標"));
+    } else if (kind === 4) {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), r = randRange(2, 9);
+        correctAnswer = r;
+        mis(r * r, "右辺 r² をそのまま答えている（半径は √ をとる）");
+        setResult(qHead() + "円 (x" + constTerm(-a) + ")²+(y" + constTerm(-b) + ")²=" + (r * r) + " の半径を求めよ");
+    } else if (kind === 5) {
+        const a = randNZ(-5, 5), b = randNZ(-5, 5), r = randRange(2, 9);
+        correctAnswer = r * r;
+        mis(r, "右辺は r² である（r をそのまま答えている）");
+        setResult(qHead() + "中心 " + pt(a, b) + "、半径 " + r + " の円の方程式は (x" + constTerm(-a) + ")²+(y" + constTerm(-b) + ")²=□ である。□ を求めよ");
+    } else if (kind === 6) {
+        const t = pick([[3, 4, 5], [4, 3, 5], [5, 12, 13], [12, 5, 13], [6, 8, 10], [8, 6, 10]]);
+        const bs = pick([1, -1]) * t[1];
+        const x0 = randRange(-4, 4), y0 = randRange(-4, 4), k = randRange(1, 4);
+        const c = pick([1, -1]) * t[2] * k - t[0] * x0 - bs * y0;
+        correctAnswer = k;
+        mis(k * t[2], "公式の分母 √(a²+b²) で割っていない（分子をそのまま答えている）");
+        setResult(qHead() + "点 " + pt(x0, y0) + " と直線 " + t[0] + "x" + (bs < 0 ? "-" : "+") + Math.abs(bs) + "y" + constTerm(c) + "=0 の距離を求めよ（|ax₀+by₀+c|/√(a²+b²)）");
+    } else if (kind === 7) {
+        const m = randNZ(-4, 4), x0 = randNZ(-4, 4), y0 = randRange(-6, 6), n = randRange(-5, 5);
+        correctAnswer = y0 - m * x0;
+        mis(y0 + m * x0, "y切片=y₀−m·x₀ の符号ミス（+ にしている）"); mis(y0, "点の y 座標をそのまま答えている");
+        setResult(qHead() + "直線 y=" + leadCoef(m) + "x" + constTerm(n) + " に平行で、点 " + pt(x0, y0) + " を通る直線の y 切片を求めよ");
+    } else if (kind === 8) {
+        let dx, dy;
+        do { dx = randRange(1, 4); dy = randRange(1, 4); } while (Number.isInteger(Math.sqrt(dx * dx + dy * dy)));
+        const x1 = randRange(-4, 4), y1 = randRange(-4, 4);
+        setExpr(vStr(vSimplifyRad([1, 1], dx * dx + dy * dy)), true);
+        misExpr(String(dx + dy), "2点間の距離を座標の差の和にしている"); misExpr(String(dx * dx + dy * dy), "√を取っていない（距離² を答えている）");
+        setResult(qHead() + "2点 A" + pt(x1, y1) + "、B" + pt(x1 + dx * pick([1, -1]), y1 + dy * pick([1, -1])) +
+            " の距離 AB を簡単な形で求めよ" + exprNote);
+    } else {
+        const ab = pick([[1, 1], [1, 2], [2, 1], [1, 3], [3, 1]]);
+        const a = ab[0], b = ab[1] * pick([1, -1]), m = a * a + b * b;
+        const t = randRange(1, 4), x0 = randRange(-4, 4), y0 = randRange(-4, 4);
+        const c = pick([1, -1]) * t * m - a * x0 - b * y0;
+        setExpr(vStr(V(t, 1, m)), true);
+        misExpr(String(t * m), "公式の分母 √(a²+b²) で割っていない（分子をそのまま答えている）");
+        setResult(qHead() + "点 " + pt(x0, y0) + " と直線 " + leadCoef(a) + "x" + (b < 0 ? "-" : "+") + absCoef(b) + "y" + constTerm(c) +
+            "=0 の距離を簡単な形で求めよ（|ax₀+by₀+c|/√(a²+b²)）" + exprNote);
+    }
+}
+
+// 28: 不等式
+function makeQuestionIneq() {
+    const kind = randInt(6);
+    const absX = a => "|x" + constTerm(-a) + "|";
+    if (kind === 0 || kind === 1) {
+        let a, b, c, op, xs, cnt;
+        const strict = Math.random() < 0.5;
+        do {
+            a = randRange(2, 5); b = randNZ(-6, 6); c = randRange(5, 20);
+            xs = [];
+            for (let x = -60; x <= 60; x++) {
+                const v = a * x + b;
+                if (strict ? v < c : v <= c) xs.push(x);
+            }
+            cnt = xs.filter(x => x >= 1).length;
+        } while (kind === 0 && (cnt < 1 || cnt > 8));
+        op = strict ? "<" : "≦";
+        if (kind === 0) {
+            correctAnswer = cnt;
+            if (strict) mis(cnt + 1, "< のとき端の値は含まれないのに数えている（等号なし）"); else mis(cnt - 1, "≦ のとき端の値も含まれるのに数えていない（等号あり）");
+            setResult(qHead() + a + "x" + constTerm(b) + op + c + " を満たす自然数 x は何個あるか");
+        } else {
+            correctAnswer = Math.max(...xs);
+            if (strict) mis(Math.max(...xs) + 1, "< のとき端の値は含まれない（等号なし）");
+            setResult(qHead() + a + "x" + constTerm(b) + op + c + " を満たす最大の整数 x を求めよ");
+        }
+    } else if (kind === 2) {
+        const a = randRange(-4, 4), b = randRange(1, 6);
+        setVecAnswer([a - b, a + b], "x₁ x₂");
+        misVec([-b, b], "|x−a|=b を |x|=b と同じにしている（中心 a を忘れている）"); misVec([a - b, a + b].map(v => -v).sort((p1, p2) => p1 - p2), "a の符号が逆（x−a の a の扱いミス）");
+        setResult(qHead() + absX(a) + "=" + b + " を解け\n（答えは小さい順に「x₁ x₂」とスペース区切り）");
+    } else if (kind === 3) {
+        const a = randRange(-4, 4), b = randRange(2, 6);
+        const strict = Math.random() < 0.5;
+        correctAnswer = strict ? 2 * b - 1 : 2 * b + 1;
+        mis(strict ? 2 * b + 1 : 2 * b - 1, strict ? "< なのに端の値を含めている" : "≦ なのに端の値を含めていない"); mis(b, "片側だけ数えている（a の左右の両側を数える）");
+        setResult(qHead() + absX(a) + (strict ? "<" : "≦") + b + " を満たす整数 x は何個あるか");
+    } else {
+        const r = randRange(-5, 3), s2 = r + randRange(2, 6);
+        if (kind === 4) {
+            setVecAnswer([r, s2], "α β");
+            misVec([-s2, -r], "解の符号が逆（(x−α)(x−β)<0 の α, β）");
+            setResult(qHead() + poly2(-(r + s2), r * s2) + "<0 の解は α<x<β である。α と β を求めよ\n（答えは「α β」の順にスペース区切り）");
+        } else {
+            const strict = Math.random() < 0.5;
+            correctAnswer = strict ? s2 - r - 1 : s2 - r + 1;
+            mis(strict ? s2 - r + 1 : s2 - r - 1, strict ? "< なのに端の値を含めている" : "≦ なのに端の値を含めていない"); mis(s2 - r, "端の値の数え方のミス（差ではなく個数を数える）");
+            setResult(qHead() + poly2(-(r + s2), r * s2) + (strict ? "<0" : "≦0") + " を満たす整数 x は何個あるか");
+        }
+    }
+}
+
+// 29: 弧度法と三角関数
+function makeQuestionRadian() {
+    const kind = randInt(9);
+    if (kind === 0) {
+        const d = pick([2, 3, 4, 6]);
+        correctAnswer = d;
+        mis(180 / d, "度の値をそのまま答えている（180° = π）");
+        setResult(qHead() + (180 / d) + "° をラジアンで表すと π/□ である。□ を求めよ");
+    } else if (kind === 1) {
+        const t = pick([[1, 6], [1, 4], [1, 3], [1, 2], [2, 3], [3, 4], [5, 6], [3, 2], [1, 1], [2, 1]]);
+        correctAnswer = 180 * t[0] / t[1];
+        mis(180 * t[1] / t[0], "分子と分母を逆にしている"); mis(360 * t[0] / t[1], "π=360° と取り違えている（π=180°）");
+        setResult(qHead() + piFrac(t[0], t[1]) + " ラジアンは何度か");
+    } else if (kind === 2) {
+        const t = pick([["sin 180°", 0], ["cos 180°", -1], ["sin 270°", -1], ["cos 270°", 0], ["cos 360°", 1], ["sin 360°", 0],
+            ["tan 135°", -1], ["tan 225°", 1], ["sin(-90°)", -1], ["cos(-180°)", -1], ["tan 180°", 0], ["sin 90°", 1]]);
+        correctAnswer = t[1];
+        setResult(qHead() + t[0] + " の値を求めよ");
+    } else if (kind === 3) {
+        const t = pick([["sin(π/2)", 1], ["cos π", -1], ["sin π", 0], ["sin(3π/2)", -1], ["cos 2π", 1], ["tan(π/4)", 1],
+            ["tan(3π/4)", -1], ["cos(π/2)", 0], ["cos 0", 1], ["tan π", 0]]);
+        correctAnswer = t[1];
+        setResult(qHead() + t[0] + " の値を求めよ");
+    } else if (kind === 4) {
+        let r, n, d;
+        do { r = randRange(2, 12); const t = pick([[1, 6], [1, 4], [1, 3], [1, 2], [2, 3], [3, 4], [5, 6]]); n = t[0]; d = t[1]; }
+        while ((r * n) % d !== 0);
+        correctAnswer = r * n / d;
+        mis(r * r * n / (2 * d), "弧の長さと面積の公式を取り違えている（弧 l=rθ）");
+        setResult(qHead() + "半径 " + r + "、中心角 " + piFrac(n, d) + " ラジアンのおうぎ形の弧の長さを求めよ（πの係数を答えよ）");
+    } else if (kind === 5) {
+        let r, n, d;
+        do { r = randRange(2, 12); const t = pick([[1, 6], [1, 4], [1, 3], [1, 2], [2, 3], [3, 4], [5, 6]]); n = t[0]; d = t[1]; }
+        while ((r * r * n) % (2 * d) !== 0);
+        correctAnswer = r * r * n / (2 * d);
+        mis(r * n / d, "面積と弧の長さの公式を取り違えている（S=1/2 r²θ）"); mis(r * r * n / d, "1/2 を忘れている（S=1/2 r²θ）");
+        setResult(qHead() + "半径 " + r + "、中心角 " + piFrac(n, d) + " ラジアンのおうぎ形の面積を求めよ（πの係数を答えよ。S=1/2 r²θ）");
+    } else if (kind === 6) {
+        const k = randRange(2, 6);
+        correctAnswer = k;
+        mis(2 * k, "周期を π/k にしている（周期は 2π/k）"); mis(k / 2, "周期の公式で 2 を余計に掛けている");
+        setResult(qHead() + "y=sin " + k + "x の周期は 2π/□ である。□ を求めよ");
+    } else if (kind === 7) {
+        const t = pick([[1, 6], [1, 4], [1, 3], [2, 3], [3, 4], [5, 6]]), fn = pick(["sin", "cos", "tan"]);
+        setExpr(vStr(T[fn][180 * t[0] / t[1]]), false);
+        setResult(qHead() + fn + "(" + piFrac(t[0], t[1]) + ") の値を求めよ" + exprNote);
+    } else {
+        const t = pick([[30, 1, 6], [45, 1, 4], [60, 1, 3]]), fn = pick(["sin", "cos", "tan"]);
+        const v = T[fn][t[0]];
+        setExpr(vStr(fn === "cos" ? v : V(-v.c[0], v.c[1], v.s)), false);
+        misExpr(vStr(fn === "cos" ? V(-v.c[0], v.c[1], v.s) : v), "sin(−θ)=−sinθ、cos(−θ)=cosθ、tan(−θ)=−tanθ の扱いの取り違え");
+        setResult(qHead() + fn + "(-" + piFrac(t[1], t[2]) + ") の値を求めよ" + exprNote);
+    }
+}
+
+// ---------- メモ機能 ----------
+const memoCanvas = document.getElementById("memoCanvas");
+const memoCtx = memoCanvas.getContext("2d");
+let memoDrawing = false;
+
+function memoSetTool(tool) {
+    memoCtx.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
+    memoCtx.lineWidth = tool === "eraser" ? 28 : 4;
+    memoCtx.lineCap = "round";
+    memoCtx.lineJoin = "round";
+    memoCtx.strokeStyle = "#000";
+    document.getElementById("memoBtnPen").classList.toggle("active", tool === "pen");
+    document.getElementById("memoBtnEraser").classList.toggle("active", tool === "eraser");
+}
+
+function memoSwitch(mode) {
+    const draw = mode === "draw";
+    memoCanvas.style.display = draw ? "inline-block" : "none";
+    document.getElementById("memoText").style.display = draw ? "none" : "inline-block";
+    document.getElementById("memoTools").style.display = draw ? "inline" : "none";
+    document.getElementById("memoBtnDraw").classList.toggle("active", draw);
+    document.getElementById("memoBtnText").classList.toggle("active", !draw);
+}
+
+function memoClear() {
+    memoCtx.clearRect(0, 0, memoCanvas.width, memoCanvas.height);
+    document.getElementById("memoText").value = "";
+}
+
+function memoPos(e) {
+    const r = memoCanvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - r.left) * memoCanvas.width / r.width,
+        y: (e.clientY - r.top) * memoCanvas.height / r.height
+    };
+}
+
+memoCanvas.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    memoDrawing = true;
+    if (memoCanvas.setPointerCapture) memoCanvas.setPointerCapture(e.pointerId);
+    const p = memoPos(e);
+    memoCtx.beginPath();
+    memoCtx.moveTo(p.x, p.y);
+    memoCtx.lineTo(p.x + 0.1, p.y + 0.1);
+    memoCtx.stroke();
+});
+memoCanvas.addEventListener("pointermove", e => {
+    if (!memoDrawing) return;
+    e.preventDefault();
+    const p = memoPos(e);
+    memoCtx.lineTo(p.x, p.y);
+    memoCtx.stroke();
+});
+["pointerup", "pointercancel", "pointerleave"].forEach(ev =>
+    memoCanvas.addEventListener(ev, () => { memoDrawing = false; }));
+
+memoSetTool("pen");
+memoSwitch("draw");
+
+// 新単元の開始（メニューのボタンから）
+function startUnit(mode) { startSession(mode, null, [30, 31, 32].includes(mode) ? "decimal" : "text"); }
+
+function makeQuestion(mode) {
+    document.getElementById("answer").value = "";
+    document.getElementById("answer").placeholder = "";
+    memoClear();
+    answer_misu = [];
+    correctVec = null;
+    correctExpr = null;
+    exprStrict = false;
+    misList = [];
+    vecNames = [];
+
+    if (mode == 1 || mode == 2) {
+        const kinds = randInt(4) + 1;
+        const rnd1 = () => randInt(questionnumber[0]) + questionnumber[1];
+        const rnd2 = () => randInt(questionnumber[2]) + questionnumber[3];
+
+        if (kinds == 1) {
+            const A = rnd1(), B = rnd1();
+            correctAnswer = A + B;
+            mis(B - A, "足し算を引き算にしている（符号の扱いミス）");
+            mis(-B - A, "両方の符号を逆にしている");
+            mis(-B + A, "符号の処理ミス（引く向きの取り違え）");
+            mis(A * B, "足し算を掛け算にしている");
+            setResult("問題" + questionCount + "　　(" + A + ") +( " + B + " )= ?");
+        }
+        if (kinds == 2) {
+            const A = rnd1(), B = rnd1();
+            correctAnswer = A - B;
+            mis(A + B, "引き算を足し算にしている（マイナスの引き方）");
+            mis(-A - B, "符号をすべて逆にしている");
+            mis(-A + B, "引く順番が逆（B−A を計算している）");
+            setResult("問題" + questionCount + "　　(" + A + ") -( " + B + " )= ?");
+        }
+        if (kinds == 3) {
+            const A = rnd2(), B = rnd2();
+            correctAnswer = A * B;
+            mis(-(A * B), "かけ算の符号ミス（負×負=正、正×負=負）");
+            mis(A + B, "かけ算を足し算にしている");
+            setResult("問題" + questionCount + "　　(" + A + ") ×( " + B + " )= ?");
+        }
+        if (kinds == 4) {
+            // 割る数は 0 にならないようにする
+            let divisor = rnd2();
+            while (divisor === 0) divisor = rnd2();
+            const quotient = rnd2();
+            const dividend = divisor * quotient;
+            correctAnswer = quotient;
+            mis(-quotient, "割り算の符号ミス（負÷負=正、正÷負=負）");
+            mis(dividend * divisor, "割り算を掛け算にしている");
+            mis(dividend - divisor, "割り算を引き算にしている");
+            setResult("問題" + questionCount + "　　(" + dividend + ") ÷( " + divisor + " )= ?");
+        }
+    }
+    if (mode == 3) {
+        if (randInt(2) == 0) makeQuestionB(randInt(questioneaseB.length));
+        else makeQuestionC(randInt(questioneaseB.length));
+    }
+    if (mode == 4) {
+        if (randInt(2) == 0) makeQuestionD();
+        else makeQuestionD2();
+    }
+    if (mode == 5) { makeQuestionE(randInt(questioneaseE.length)); setPlaceholder("x y"); }
+    if (mode == 6) { if (Math.random() < 0.5) makeQuestionF(randInt(questioneaseF.length)); else makeQuestionTrigExtra(); }
+    if (mode == 7) makeQuestionNumberLine();
+    if (mode == 8) makeQuestionVector();
+    if (mode == 9) makeQuestionQuadratic();
+    if (mode == 10) makeQuestionFactor();
+    if (mode == 11) makeQuestionExpand();
+    if (mode == 12) makeQuestionComplete();
+    if (mode == 13) makeQuestionSet();
+    if (mode == 14) makeQuestionRoot();
+    if (mode == 15) makeQuestionLinearEq();
+    if (mode == 16) makeQuestionQuadEq();
+    if (mode == 17) makeQuestionPythag();
+    if (mode == 18) makeQuestionCircle();
+    if (mode == 19) makeQuestionSolid();
+    if (mode == 20) makeQuestionAngle();
+    if (mode == 21) makeQuestionCount();
+    if (mode == 22) makeQuestionData();
+    if (mode == 23) makeQuestionSequence();
+    if (mode == 24) makeQuestionExpLog();
+    if (mode == 25) makeQuestionTriLaw();
+    if (mode == 26) makeQuestionCalculus();
+    if (mode == 27) makeQuestionCoord();
+    if (mode == 28) makeQuestionIneq();
+    if (mode == 29) makeQuestionRadian();
+    if (mode == 30) makeQuestionTwoDigitAddSub();
+    if (mode == 31) makeQuestionTimesTable();
+    if (mode == 32) makeQuestionTwoDigitMulDiv();
+    if (mode == 33) makeQuestionSignedTwoDigit();
+}
+
+// ---------- 基礎計算（整数）・タイムアタック ----------
+// 30: 二桁の足し引き
+function makeQuestionTwoDigitAddSub() {
+    const add = Math.random() < 0.5;
+    let A = randRange(10, 99), B = randRange(10, 99);
+    if (Math.random() < 0.6) {                       // 繰り上がり・繰り下がりのある問題を多めに
+        if (add) { while ((A % 10) + (B % 10) < 10) { A = randRange(10, 99); B = randRange(10, 99); } }
+        else { while (A <= B || A % 10 >= B % 10) { A = randRange(10, 99); B = randRange(10, 99); } }
+    } else if (!add && A < B) { const tmp = A; A = B; B = tmp; }
+    const t1 = Math.floor(A / 10), o1 = A % 10, t2 = Math.floor(B / 10), o2 = B % 10;
+    if (add) {
+        correctAnswer = A + B;
+        if (o1 + o2 >= 10) {
+            mis(A + B - 10, "繰り上がりを忘れている（一の位が 10 以上のとき十の位に 1 を足す）");
+            mis(Number(String(t1 + t2) + String(o1 + o2)), "一の位の和（10以上）をそのまま書いている（繰り上がりの処理ミス）");
+        }
+        mis(Math.abs(A - B), "足し算を引き算にしている");
+        setResult(qHead() + A + " + " + B + " = ?");
+    } else {
+        correctAnswer = A - B;
+        if (o1 < o2) {
+            mis(correctAnswer + 10, "繰り下がりで十の位を 1 減らし忘れている");
+            mis(10 * (t1 - t2) + (o2 - o1), "一の位で大きい数から小さい数を引いている（繰り下がりが必要）");
+            mis(correctAnswer - 10, "繰り下がりで十の位を二重に減らしている");
+        }
+        mis(A + B, "引き算を足し算にしている");
+        setResult(qHead() + A + " - " + B + " = ?");
+    }
+}
+
+// 31: 九九
+function makeQuestionTimesTable() {
+    const A = randRange(2, 9), B = randRange(2, 9);
+    if (Math.random() < 0.25) {
+        correctAnswer = B;
+        mis(A, "割る数をそのまま答えている");
+        mis(A * B - A, "割り算を引き算にしている");
+        mis(A + B, "割り算を足し算にしている");
+        setResult(qHead() + (A * B) + " ÷ " + A + " = ?");
+    } else {
+        correctAnswer = A * B;
+        mis(A * (B + 1), "九九の覚え違い（隣の答えを答えている）");
+        mis(A * (B - 1), "九九の覚え違い（隣の答えを答えている）");
+        mis((A + 1) * B, "九九の覚え違い（隣の段の答えを答えている）");
+        mis((A - 1) * B, "九九の覚え違い（隣の段の答えを答えている）");
+        mis(A + B, "かけ算を足し算にしている");
+        setResult(qHead() + A + " × " + B + " = ?");
+    }
+}
+
+// 32: 二桁のかけ割
+function makeQuestionTwoDigitMulDiv() {
+    const r = Math.random();
+    if (r < 0.3) {
+        const A = randRange(11, 99), B = randRange(2, 9);
+        const t = Math.floor(A / 10), o = A % 10;
+        correctAnswer = A * B;
+        mis(10 * t * B + o, "一の位に掛けていない（十の位だけ掛けている）");
+        if (o * B >= 10) mis(10 * t * B + (o * B) % 10, "一の位の掛け算の繰り上がりを足し忘れている");
+        mis(A + B, "かけ算を足し算にしている");
+        setResult(qHead() + A + " × " + B + " = ?");
+    } else if (r < 0.55) {
+        const A = randRange(11, 30), B = randRange(11, 30);
+        const b1 = Math.floor(B / 10), b0 = B % 10;
+        correctAnswer = A * B;
+        mis(A * b1 + A * b0, "十の位の部分積を 10 倍していない（位取りのミス）");
+        mis(A * b1 * 10, "一の位の部分積を足し忘れている");
+        mis(A * b0, "十の位の掛け算を忘れている");
+        setResult(qHead() + A + " × " + B + " = ?");
+    } else if (r < 0.8) {
+        const dv = randRange(2, 9);
+        const q = randRange(Math.ceil(10 / dv), Math.floor(99 / dv));
+        correctAnswer = q;
+        mis(dv, "割る数を答えている");
+        mis(q * 10, "桁がずれている（位取りのミス）");
+        mis(dv * q - dv, "割り算を引き算にしている");
+        setResult(qHead() + (dv * q) + " ÷ " + dv + " = ?");
+    } else {
+        const dv = randRange(11, 25), q = randRange(2, 9);
+        correctAnswer = q;
+        mis(dv, "割る数を答えている");
+        mis(q * 10, "桁がずれている（位取りのミス）");
+        mis(dv * q - dv, "割り算を引き算にしている");
+        setResult(qHead() + (dv * q) + " ÷ " + dv + " = ?");
+    }
+}
+
+// 33: 正負の2桁（タイムアタック用）
+function makeQuestionSignedTwoDigit() {
+    const sgn = () => (Math.random() < 0.5 ? 1 : -1);
+    const f = n => "(" + n + ")";
+    const r = Math.random();
+    const A = sgn() * randRange(10, 99);
+    if (r < 0.35) {
+        const B = sgn() * randRange(10, 99);
+        correctAnswer = A + B;
+        mis(A - B, "足し算を引き算にしている（−( ) の扱いの取り違え）");
+        if (A * B < 0) {
+            mis(Math.abs(A) + Math.abs(B), "異符号の足し算で絶対値を足している（大きい方から小さい方を引く）");
+            mis(-(Math.abs(A) + Math.abs(B)), "異符号の足し算で絶対値を足している（大きい方から小さい方を引く）");
+        } else {
+            mis(Math.abs(A + B), "共通の符号を付け忘れている");
+        }
+        mis(A + B + 10, "繰り上がり・繰り下がりのミス（10 のずれ）");
+        mis(A + B - 10, "繰り上がり・繰り下がりのミス（10 のずれ）");
+        setResult(qHead() + f(A) + " + " + f(B) + " = ?");
+    } else if (r < 0.7) {
+        const B = sgn() * randRange(10, 99);
+        correctAnswer = A - B;
+        mis(A + B, "引き算を足し算にしている（−(−B)=+B の処理ミス）");
+        mis(B - A, "引く順番が逆（B−A を計算している）");
+        mis(A - B + 10, "繰り上がり・繰り下がりのミス（10 のずれ）");
+        mis(A - B - 10, "繰り上がり・繰り下がりのミス（10 のずれ）");
+        setResult(qHead() + f(A) + " - " + f(B) + " = ?");
+    } else if (r < 0.85) {
+        const B = sgn() * randRange(2, 9);
+        correctAnswer = A * B;
+        mis(-correctAnswer, "かけ算の符号ミス（同符号→正、異符号→負）");
+        mis(A + B, "かけ算を足し算にしている");
+        setResult(qHead() + f(A) + " × " + f(B) + " = ?");
+    } else {
+        const dv = sgn() * randRange(2, 9), absDv = Math.abs(dv);
+        const q = sgn() * randRange(Math.ceil(10 / absDv), Math.floor(99 / absDv));
+        correctAnswer = q;
+        mis(-q, "割り算の符号ミス（同符号→正、異符号→負）");
+        mis(Math.abs(dv), "割る数を答えている");
+        setResult(qHead() + f(dv * q) + " ÷ " + f(dv) + " = ?");
+    }
+}
+
+// ---------- タイムアタック ----------
+function fmtTime(sec) {
+    const m = Math.floor(sec / 60);
+    const rest = (sec - m * 60).toFixed(1);
+    return m + ":" + (Number(rest) < 10 ? "0" : "") + rest;
+}
+
+function updateTimer() {
+    const sec = (performance.now() - taStart) / 1000;
+    document.getElementById("timer").textContent =
+        "問題 " + questionCount + "/" + TA_COUNT + "　経過 " + fmtTime(sec) + (taFlash ? "　" + taFlash : "");
+}
+function startTimer() {
+    stopTimer();
+    taTimerId = setInterval(updateTimer, 100);
+    show("timer", "block");
+    updateTimer();
+}
+function stopTimer() {
+    if (taTimerId !== null) clearInterval(taTimerId);
+    taTimerId = null;
+    show("timer", "none");
+}
+
+function startTimeAttack() {
+    startSession(33, null, "text");
+    show("memo", "none");              // タイムアタックはメモなし
+    taLog = [];
+    taCorrect = 0;
+    taFlash = "";
+    taStart = performance.now();
+    startTimer();
+    document.getElementById("answer").focus();
+}
+
+function timeAttackAnswer(raw) {
+    answerstatistics[32][1] += 1;
+    const qText = document.getElementById("result").textContent.replace(/^問題\d+　　/, "");
+    const verdict = judgeAnswer(raw);
+    if (verdict.correct) {
+        taCorrect += 1;
+        answerstatistics[32][0] += 1;
+        taFlash = "前の問題: ○";
+    } else {
+        recordMistake(verdict.label);
+        taLog.push({ q: qText, user: raw, correct: correctAnswer, label: verdict.label });
+        taFlash = "前の問題: ×（正解は " + correctAnswer + "）";
+    }
+    if (questionCount >= TA_COUNT) {
+        finishTimeAttack();
+        return;
+    }
+    questionCount++;
+    makeQuestion(33);
+    updateTimer();
+    document.getElementById("answer").focus();
+}
+
+function finishTimeAttack() {
+    const sec = (performance.now() - taStart) / 1000;
+    stopTimer();
+    sessionId++;
+    analysisdisplay();
+    setResult("");
+    const perfect = taCorrect === TA_COUNT;
+    let newBest = false;
+    if (perfect && (taBest === null || sec < taBest)) { taBest = sec; newBest = true; }
+
+    let h = '<button onclick="startTimeAttack()">もう一度挑戦</button> <button onclick="checkback()">戻る</button>';
+    h += "<h2>タイムアタック結果</h2><table>";
+    h += '<tr><td class="u">タイム</td><td class="n">' + fmtTime(sec) + "</td></tr>";
+    h += '<tr><td class="u">正解率</td><td class="n">' + taCorrect + "/" + TA_COUNT + "（" + Math.round(100 * taCorrect / TA_COUNT) + "%）</td></tr>";
+    h += '<tr><td class="u">誤答数</td><td class="n">' + (TA_COUNT - taCorrect) + "</td></tr>";
+    h += '<tr><td class="u">1問あたり</td><td class="n">' + (sec / TA_COUNT).toFixed(1) + "秒</td></tr>";
+    if (taBest !== null) {
+        h += '<tr><td class="u">ノーミスのベストタイム（このページを開いている間）</td><td class="n">' + fmtTime(taBest) + (newBest ? "　更新！" : "") + "</td></tr>";
+    }
+    h += "</table>";
+    if (perfect) {
+        h += '<p class="advice">ノーミスです。次は同じ正確さのまま、タイムを縮めましょう。</p>';
+    } else if (taCorrect / TA_COUNT < 0.9) {
+        h += '<p class="advice">まずは正確さを優先しましょう。正解率が 90% を超えてからタイムを縮めるのがおすすめです。</p>';
+    } else {
+        h += '<p class="advice">あと少しでノーミスです。間違えたところを確認しましょう。</p>';
+    }
+    if (taLog.length > 0) {
+        h += "<h3>間違えた問題</h3><table>";
+        taLog.forEach(e => {
+            h += '<tr><td class="u">' + esc(e.q) + '<br><span class="sub">あなたの答え: ' + esc(e.user) + "　正解: " + esc(e.correct) +
+                "　【" + esc(e.label) + "】</span></td></tr>";
+        });
+        h += "</table>";
+    }
+    document.getElementById("analysis").innerHTML = h;
+}
+
+// ---------- 各モードの開始 ----------
+function startSession(mode, nums, inputKind) {
+    sessionId++;
+    sessionMistakes = {};
+    stopTimer();
+    answerlist = new Array(15).fill(0);
+    questionCount = 1;
+    answerCount = 0;
+    questionmode = mode;
+    if (nums) questionnumber = nums;
+    document.getElementById("図形").innerHTML = "";
+
+    const input = document.getElementById("answer");
+    input.inputMode = inputKind;   // "decimal"は「-」「/」「スペース」「√」が打てないので使い分ける
+
+    questiondisplay();
+    makeQuestion(mode);
+}
+
+function checkstrat_ease()         { startSession(1, [50, 1, 10, 1], "decimal"); }
+function checkstrat_hrad()         { startSession(2, [101, -50, 21, -10], "text"); }
+function checkstrat_easeB()        { startSession(3, null, "text"); }
+function checkstrat_Shape()        { startSession(4, null, "decimal"); }
+function checkstrat_Simultaneous() { startSession(5, null, "text"); }
+function checkstrat_Shape2()       { startSession(6, null, "text"); }
+
+function checkstrat_easeC()  { startSession(7, null, "text"); }      // 数直線
+function checkstrat_Shape3() { startSession(8, null, "text"); }      // ベクトル
+function checkstrat_easeB2() { startSession(9, null, "text"); }      // 二次関数
+function checkstrat_easeB3() { startSession(10, null, "text"); }     // 因数分解
+function checkstrat_easeB4() { startSession(11, null, "text"); }     // 展開
+function checkstrat_easeB5() { startSession(12, null, "text"); }     // 平方完成
+function checkstrat_easeD1() { startSession(13, null, "decimal"); }  // 集合と命題
+
+// ---------- 間違え方の記録 ----------
+function mis(value, label) { misList.push({ t: "n", v: value, label: label }); }
+function misVec(arr, label) { misList.push({ t: "v", v: arr, label: label }); }
+function misExpr(str, label) { misList.push({ t: "e", v: str, label: label }); }
+function frStr(f) { return f[1] === 1 ? String(f[0]) : f[0] + "/" + f[1]; }
+function evalMap(map) {
+    return Object.keys(map).reduce((sum, k) => sum + map[k][0] / map[k][1] * Math.sqrt(Number(k)), 0);
+}
+
+// 問題文の sin/cos/tan と角度を読み取り、別の三角比の値を答えていないか調べる
+function trigConfusion(val) {
+    const q = document.getElementById("result").textContent;
+    let fn = null, deg = null, m;
+    if ((m = q.match(/(sin|cos|tan)\s*\(?\s*(-?\d+(?:\.\d+)?)°/))) {
+        fn = m[1]; deg = Number(m[2]);
+    } else if ((m = q.match(/(sin|cos|tan)\(\s*(-?)(\d*)π(?:\/(\d+))?\s*\)/))) {
+        fn = m[1];
+        deg = (m[2] ? -1 : 1) * 180 * (m[3] === "" ? 1 : Number(m[3])) / (m[4] ? Number(m[4]) : 1);
+    } else if ((m = q.match(/(sin|cos|tan)\s+(\d*)π/))) {
+        fn = m[1]; deg = 180 * (m[2] === "" ? 1 : Number(m[2]));
+    } else if ((m = q.match(/(sin|cos|tan)\s+0(?!\d)/))) {
+        fn = m[1]; deg = 0;
+    }
+    if (fn === null || Number.isNaN(val)) return null;
+    for (const other of ["sin", "cos", "tan"]) {
+        if (other === fn) continue;
+        const v = Math[other](deg * Math.PI / 180);
+        if (Math.abs(v) < 1e6 && Math.abs(v - val) < 1e-9) {
+            return other + " の値を答えている（sin・cos・tan の取り違え）";
+        }
+    }
+    return null;
+}
+
+// 数値の答えの間違え方
+function diagnoseNumber(n) {
+    if (Number.isNaN(n)) return "数として読み取れない入力（書き方の誤り）";
+    const hit = misList.find(m => m.t === "n" && nearlyEqual(m.v, n));
+    if (hit) return hit.label;
+    const tc = trigConfusion(n);
+    if (tc) return tc;
+    const c = correctAnswer;
+    if (typeof c === "number" && c !== 0) {
+        if (nearlyEqual(n, -c)) return "符号の間違い（正負が逆になっている）";
+        if (nearlyEqual(n, 2 * c)) return "2倍にしている（÷2 の忘れなど）";
+        if (nearlyEqual(n * 2, c)) return "半分にしている（×2 の忘れなど）";
+        if (nearlyEqual(n, 10 * c) || nearlyEqual(n * 10, c)) return "桁を間違えている";
+    }
+    if (typeof c === "number" && Math.abs(Math.abs(n - c) - 1) < 1e-9) return "±1 のずれ（数え方・端の扱いのミス）";
+    return "その他の計算ミス";
+}
+
+// 複数の数で答える問題の間違え方
+function diagnoseVec(raw) {
+    const u = normalizeNumberText(raw).replace(/,/g, " ").split(/\s+/).map(Number);
+    const cv = correctVec;
+    const hit = misList.find(m => m.t === "v" && m.v.length === u.length && m.v.every((x, i) => nearlyEqual(x, u[i])));
+    if (hit) return hit.label;
+    if (u.length !== cv.length || u.some(Number.isNaN)) return "入力形式の誤り（個数・書き方を確認）";
+    if (u.every((x, i) => nearlyEqual(x, -cv[i]))) return "すべての値の符号が逆になっている";
+    if (cv.length === 2 && nearlyEqual(u[0], cv[1]) && nearlyEqual(u[1], cv[0])) {
+        return "答える順序（" + (vecNames[0] || "1番目") + "と" + (vecNames[1] || "2番目") + "）を取り違えている";
+    }
+    const wrong = u.map((x, i) => nearlyEqual(x, cv[i]) ? -1 : i).filter(i => i >= 0);
+    if (wrong.length === 1) {
+        const i = wrong[0], nm = vecNames[i] || ((i + 1) + "番目の値");
+        return nearlyEqual(u[i], -cv[i]) ? nm + "の符号が逆になっている" : nm + "の計算ミス（もう一方は合っている）";
+    }
+    return "複数の値が違う（解き方・公式の取り違えの可能性）";
+}
+
+// √や分数を含む答えの間違え方
+function diagnoseExpr(raw) {
+    const u = parseExpr(raw);
+    if (!u) return "式として読み取れない入力（√ や / の書き方を確認）";
+    const c = parseExpr(correctExpr);
+    if (exprEqual(u.map, c.map)) {
+        return exprStrict ? "値は合っているが、簡単な形（有理化・√の中を最小に）になっていない" : "答えの形が違う";
+    }
+    const hit = misList.find(m => {
+        const pm = parseExpr(String(m.v));
+        return pm && exprEqual(pm.map, u.map);
+    });
+    if (hit) return hit.label;
+    const neg = {};
+    Object.keys(c.map).forEach(k => { neg[k] = [-c.map[k][0], c.map[k][1]]; });
+    if (exprEqual(neg, u.map)) return "符号の間違い（正負が逆になっている）";
+    const un = evalMap(u.map), cn = evalMap(c.map);
+    const tc = trigConfusion(un);
+    if (tc) return tc;
+    if (Math.abs(cn) > 1e-9 && Math.abs(un) > 1e-9) {
+        if (Math.abs(un * cn - 1) < 1e-9) return "分子と分母を逆にしている（逆数を答えている）";
+        if (Math.abs(un / cn - 2) < 1e-9) return "2倍にしている（÷2 の忘れなど）";
+        if (Math.abs(un / cn - 0.5) < 1e-9) return "半分にしている（×2 の忘れなど）";
+    }
+    const uk = Object.keys(u.map), ck = Object.keys(c.map);
+    if (uk.length === 1 && ck.length === 1) {
+        if (uk[0] === "1" && ck[0] === "1") return "分数・数値の計算ミス";
+        if (uk[0] === ck[0]) return "係数の計算ミス（√の中は合っている）";
+        if (uk[0] === "1") return "√ を付け忘れている";
+        if (ck[0] === "1") return "√ を付けすぎている";
+        return "√の中の計算ミス（平方数のくくり出し・掛け算のミスなど）";
+    }
+    return "その他の計算ミス";
+}
+
+function diagnose(raw) {
+    if (correctVec) return diagnoseVec(raw);
+    if (correctExpr) return diagnoseExpr(raw);
+    if (questionmode === 6) return "定義できる値として答えている（tan90° は cos90°=0 が分母になり定義できない）";
+    return diagnoseNumber(Number(normalizeNumberText(raw)));
+}
+
+function recordMistake(label) {
+    sessionMistakes[label] = (sessionMistakes[label] || 0) + 1;
+    const ms = mistakeStats[questionmode - 1];
+    ms[label] = (ms[label] || 0) + 1;
+}
+
+// ---------- 採点 ----------
+// 数値回答
+function judgeNumber(raw) {
+    const n = Number(normalizeNumberText(raw));
+    return nearlyEqual(n, correctAnswer);
+}
+
+// 三角比(定義できるかどうか等の文字の答え)
+function judgeTrig(raw) {
+    const user = raw.replace(/／/g, "/").replace(/[\s　]/g, "").replace(/[０-９]/g, c =>
+        String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    const accepted = [correctAnswer].concat(alternativeAnswersF[correctAnswer] || []);
+    return accepted.includes(user);
+}
+
+// 連立方程式の誤り分類
+function judgeSimultaneous(ux, uy) {
+    const [a, b, c, d, e, f] = eq;
+    const xOk = nearlyEqual(ux, answerX);
+    const yOk = nearlyEqual(uy, answerY);
+    if (xOk && yOk) return null;
+
+    const xNeg = nearlyEqual(ux, -answerX);
+    const yNeg = nearlyEqual(uy, -answerY);
+
+    if (xNeg && yNeg) return [4, "xとyの正負を間違えている可能性があります"];
+    if (xNeg && yOk)  return [5, "xの正負を間違えている可能性があります"];
+    if (xOk && yNeg)  return [6, "yの正負を間違えている可能性があります"];
+    if (yOk)          return [2, "xの計算を間違えている可能性があります"];
+    if (xOk)          return [3, "yの計算を間違えている可能性があります"];
+
+    const eq1Ok = nearlyEqual(a * ux + b * uy, c);
+    const eq2Ok = nearlyEqual(d * ux + e * uy, f);
+    if (!eq1Ok && eq2Ok) return [7, "1つ目の式の計算を間違えている可能性があります"];
+    if (eq1Ok && !eq2Ok) return [8, "2つ目の式の計算を間違えている可能性があります"];
+    if (!eq1Ok && !eq2Ok) return [9, "計算方法を間違えている可能性があります"];
+    return [10, "その他の間違いの可能性があります"];
+}
+
+// 複数の数で答える問題（ベクトル・因数分解など）
+function judgeVector(raw) {
+    const parts = normalizeNumberText(raw).replace(/,/g, " ").split(/\s+/).map(Number);
+    return parts.length === correctVec.length && correctVec.every((v, i) => nearlyEqual(parts[i], v));
+}
+
+function judgeAnswer(raw) {
+    let correct, label = null;
+    if (questionmode === 5) {
+        const parts = normalizeNumberText(raw).replace(/,/g, " ").split(/\s+/);
+        const verdict = judgeSimultaneous(Number(parts[0]), Number(parts[1]));
+        correct = verdict === null;
+        if (!correct) label = verdict[1];
+    } else if (correctVec) correct = judgeVector(raw);
+    else if (correctExpr) correct = judgeExpr(raw);
+    else if (questionmode === 6) correct = judgeTrig(raw);
+    else correct = judgeNumber(raw);
+
+    if (correct) return { correct: true };
+    if (label === null) label = diagnose(raw);
+    return { correct: false, label: label };
+}
+
+function isValidInput(raw) {
+    if (raw === "") return false;
+    const need = questionmode === 5 ? 2 : (correctVec ? correctVec.length : 0);
+    if (need > 0) {
+        const parts = normalizeNumberText(raw).replace(/,/g, " ").split(/\s+/);
+        if (parts.length !== need || parts.some(p => p === "" || Number.isNaN(Number(p)))) {
+            alert(need + "つの数をスペースで区切って入力してください（例: 2 3）");
+            return false;
+        }
+    }
+    return true;
+}
+
+function showSummary() {
+    let t = "終了！\n　正解数_" + answerlist[0] + "\n　不正解数_" + answerlist[1];
+    const entries = Object.keys(sessionMistakes).map(k => [k, sessionMistakes[k]]).sort((a, b) => b[1] - a[1]);
+    if (entries.length === 0) {
+        t += "\n　全問正解！";
+    } else {
+        t += "\n\n　今回の間違え方";
+        entries.forEach(e => { t += "\n　・" + e[0] + " ×" + e[1]; });
+    }
+    setResult(t);
+}
+
+// 回答ボタン
+async function checkAnswer() {
+    if (answerCount !== 0) return;
+
+    const raw = document.getElementById("answer").value.trim();
+    if (!isValidInput(raw)) return;
+    if (questionmode === 33) { timeAttackAnswer(raw); return; }
+
+    answerCount = 1;
+    const mySession = sessionId;
+    answerstatistics[questionmode - 1][1] += 1;
+
+    const verdict = judgeAnswer(raw);
+    let waitTime = 1000;
+    if (verdict.correct) {
+        setResult("正解！");
+        answerlist[0] += 1;
+        answerstatistics[questionmode - 1][0] += 1;
+    } else {
+        answerlist[1] += 1;
+        recordMistake(verdict.label);
+        const correctText = questionmode === 5
+            ? "X=" + answerX + " Y=" + answerY
+            : (correctVec ? correctVec.join(" ") : correctAnswer);
+        setResult("不正解　正解は" + correctText + "\n【間違え方】" + verdict.label);
+        waitTime = 3500;
+    }
+
+    await sleep(waitTime);
+    if (mySession !== sessionId) return;
+
+    if (questionCount === 5) {
+        document.getElementById("図形").innerHTML = "";
+        showSummary();
+        return;
+    }
+
+    setResult("次の問題まで 2");
+    await sleep(1000);
+    if (mySession !== sessionId) return;
+
+    setResult("次の問題まで 1");
+    await sleep(1000);
+    if (mySession !== sessionId) return;
+
+    document.getElementById("図形").innerHTML = "";
+    questionCount++;
+    makeQuestion(questionmode);
+    answerCount = 0;
+}
+
+// ---------- 正解率・間違え方の傾向の表示 ----------
+const UNIT_NAMES = {
+    1: "整数計算", 2: "正負の計算", 3: "一次関数", 4: "簡単な図形", 5: "連立方程式", 6: "三角比",
+    7: "数直線", 8: "ベクトル", 9: "二次関数", 10: "因数分解", 11: "展開", 12: "平方完成", 13: "集合と命題",
+    14: "平方根", 15: "一次方程式・文字式", 16: "二次方程式", 17: "三平方の定理", 18: "円とおうぎ形",
+    19: "立体の体積・表面積", 20: "角度", 30: "二桁の足し引き", 31: "九九", 32: "二桁のかけ割", 33: "正負の2桁タイムアタック", 21: "場合の数と確率", 22: "資料の整理とデータ分析", 23: "数列",
+    24: "指数・対数", 25: "正弦定理・余弦定理", 26: "微分・積分", 27: "図形と方程式", 28: "不等式", 29: "弧度法と三角関数"
+};
+const CATEGORIES = [
+    { name: "基礎計算", modes: [30, 31, 32, 7, 2, 33, 14, 15, 3] },
+    { name: "図形計算", modes: [4, 20, 18, 19, 17, 6, 25, 8, 27, 29] },
+    { name: "高次計算", modes: [9, 16, 5, 10, 11, 12, 28, 24, 23, 26] },
+    { name: "論理的計算", modes: [13, 21, 22] }
+];
+const ADVICE = {
+    "符号・正負のミス": "負の数は必ず ( ) をつけて書き、−( ) を外すときは中の符号をすべて変えましょう。移項するときも符号が変わることを確認しましょう。",
+    "数え方・端の扱いのミス": "数直線や表を書いて、端の値が含まれるか（< か ≦ か）を確認しましょう。",
+    "答えの整理不足（簡単な形・約分）": "答えが出たら「約分できないか」「√の中に平方数が残っていないか」「分母に √ がないか」を確認しましょう。",
+    "公式・用語・向きの取り違え": "公式は「何を求めるものか」（面積・体積・距離・順列など）とセットで覚え直しましょう。似た公式は並べて違いを書き出すと効果的です。",
+    "手順の抜け（÷2・平方根・掛け忘れなど）": "答えを出す前に、最後の手順（÷2・÷3・平方根を取る・2倍など）をチェックリストにして確認しましょう。",
+    "入力形式の誤り": "入力形式（スペース区切り、√ は「ルート」と入力など）を確認しましょう。",
+    "その他の計算ミス": "途中式をメモ欄に書いて、1行ずつ見直しましょう。"
+};
+
+function classifyMistake(label) {
+    if (/入力|読み取れ/.test(label)) return "入力形式の誤り";
+    if (/符号|正負|奇関数|偶関数/.test(label)) return "符号・正負のミス";
+    if (/±1|端|等号|数え|個数/.test(label)) return "数え方・端の扱いのミス";
+    if (/簡単な形|有理化|約分|形が違う/.test(label)) return "答えの整理不足（簡単な形・約分）";
+    if (/取り違え|混同|公式|逆にしている|逆（|順序|向き|逆になっている/.test(label)) return "公式・用語・向きの取り違え";
+    if (/忘れ|していない|いない|抜け|掛けて|落として/.test(label)) return "手順の抜け（÷2・平方根・掛け忘れなど）";
+    return "その他の計算ミス";
+}
+
+function esc(str) {
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function pct(c, t) { return t === 0 ? "―" : Math.round(100 * c / t) + "%"; }
+function topMistakes(mode, n) {
+    const ms = mistakeStats[mode - 1];
+    return Object.keys(ms).map(k => [k, ms[k]]).sort((a, b) => b[1] - a[1]).slice(0, n);
+}
+
+function tendencyHtml() {
+    const cats = {}, all = {};
+    let total = 0;
+    for (let m = 1; m <= MODE_COUNT; m++) {
+        const ms = mistakeStats[m - 1];
+        Object.keys(ms).forEach(label => {
+            const c = ms[label], cat = classifyMistake(label);
+            cats[cat] = (cats[cat] || 0) + c;
+            total += c;
+            if (!all[label]) all[label] = { count: 0, units: [] };
+            all[label].count += c;
+            if (!all[label].units.includes(UNIT_NAMES[m])) all[label].units.push(UNIT_NAMES[m]);
+        });
+    }
+    let h = "<h2>間違え方の傾向</h2>";
+    if (total === 0) return h + "<p>まだ間違いの記録がありません。</p>";
+
+    const catList = Object.keys(cats).map(k => [k, cats[k]]).sort((a, b) => b[1] - a[1]);
+    h += "<h3>種類別（全部で " + total + " 回）</h3><table>";
+    catList.forEach(e => {
+        h += '<tr><td class="u">' + esc(e[0]) + '</td><td class="n">' + e[1] + "回</td><td class=\"n\">" +
+            Math.round(100 * e[1] / total) + "%</td></tr>";
+    });
+    h += "</table>";
+    h += '<p class="advice">いちばん多いのは「' + esc(catList[0][0]) + "」です。" + esc(ADVICE[catList[0][0]]) + "</p>";
+
+    const top = Object.keys(all).map(k => [k, all[k]]).sort((a, b) => b[1].count - a[1].count).slice(0, 5);
+    h += "<h3>よくある間違い TOP" + top.length + "</h3><table>";
+    top.forEach(e => {
+        h += '<tr><td class="u">' + esc(e[0]) + '<br><span class="sub">' + esc(e[1].units.join("、")) +
+            '</span></td><td class="n">' + e[1].count + "回</td></tr>";
+    });
+    h += "</table>";
+
+    const weak = [];
+    for (let m = 1; m <= MODE_COUNT; m++) {
+        const st = answerstatistics[m - 1];
+        if (st[1] >= 3 && st[0] / st[1] < 0.7) weak.push([m, st[0], st[1]]);
+    }
+    weak.sort((a, b) => a[1] / a[2] - b[1] / b[2]);
+    h += "<h3>苦手な単元（3問以上回答・正解率70%未満）</h3>";
+    if (weak.length === 0) h += "<p>該当する単元はありません。</p>";
+    else {
+        h += "<table>";
+        weak.forEach(w => {
+            h += '<tr><td class="u">' + UNIT_NAMES[w[0]] + '</td><td class="n">' + w[1] + "/" + w[2] +
+                '</td><td class="n">' + pct(w[1], w[2]) + "</td></tr>";
+        });
+        h += "</table>";
+    }
+    return h;
+}
+
+function checkanalysis() {
+    analysisdisplay();
+    setResult("");
+    let totC = 0, totT = 0;
+    answerstatistics.forEach(st => { totC += st[0]; totT += st[1]; });
+
+    let h = '<button onclick="checkback()">戻る</button>';
+    h += "<h2>全体の正解率　" + totC + "/" + totT + "（" + pct(totC, totT) + "）</h2>";
+    h += "<h2>単元別の正解率と間違え方</h2>";
+    CATEGORIES.forEach(cat => {
+        let cc = 0, ct = 0;
+        cat.modes.forEach(m => { cc += answerstatistics[m - 1][0]; ct += answerstatistics[m - 1][1]; });
+        h += "<h3>" + cat.name + "　" + cc + "/" + ct + "（" + pct(cc, ct) + "）</h3><table>";
+        cat.modes.forEach(m => {
+            const c = answerstatistics[m - 1][0], t = answerstatistics[m - 1][1];
+            h += '<tr><td class="u">' + UNIT_NAMES[m] + '</td><td class="n">' + c + "/" + t +
+                '</td><td class="n">' + pct(c, t) + "</td></tr>";
+            topMistakes(m, 3).forEach(e => {
+                h += '<tr><td class="mis" colspan="3">└ ' + esc(e[0]) + "　×" + e[1] + "</td></tr>";
+            });
+        });
+        h += "</table>";
+    });
+    h += tendencyHtml();
+    document.getElementById("analysis").innerHTML = h;
+}
+
+// ---------- 戻る・リセット ----------
+function goBackToMenu() {
+    sessionId++;               // 進行中のカウントダウンを無効にする
+    reset(0);
+    stratdisplay();
+    answerCount = 0;
+    setResult("");
+    document.getElementById("図形").innerHTML = "";
+}
+
+function checkback()  { goBackToMenu(); }
+function checkback2() { goBackToMenu(); }
+
+function checkreset() {
+    reset(1);
+    setResult("回答分析をリセットしました");
+}
+
+// Enterキーで回答
+document.getElementById("answer").addEventListener("keydown", e => {
+    if (e.key === "Enter") checkAnswer();
+});
+
+// 最初の画面
+stratdisplay();
+</script>
+</body>
+</html>
