@@ -1,0 +1,3580 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<title>総合学習ナビ - 小中高大5教科対応ブラウザ学習システム</title>
+<meta name="description" content="小学校から大学・高校まで対応した数学・国語・英語・理科・社会の全180単元を網羅する総合学習プラットフォーム。段階別ステップ学習と単元まとめテストを搭載。">
+<meta property="og:title" content="総合学習ナビ - 小中高大5教科対応ブラウザ学習システム">
+<meta property="og:description" content="小学校から大学・高校まで対応した数学・国語・英語・理科・社会の全180単元を網羅する総合学習プラットフォーム。段階別ステップ学習と単元まとめテストを搭載。">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root {
+  --appH: 100dvh;
+  --theme-math: #2563eb;
+  --theme-jp: #dc2626;
+  --theme-en: #0d9488;
+  --theme-sci: #16a34a;
+  --theme-soc: #d97706;
+  --primary: var(--theme-math);
+  --bg-page: #ffffff;
+  --card-bg: #ffffff;
+  --border-color: #f1f5f9;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; background: var(--bg-page); color: #0f172a; }
+body {
+  text-align: center; -webkit-text-size-adjust: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  user-select: none; min-height: var(--appH);
+}
+
+/* 固定トップバー（完全ミニマル） */
+#topBar {
+  position: fixed; top: 0; left: 0; right: 0; height: calc(44px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top); background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(10px);
+  border-bottom: 1px solid #f1f5f9; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between; padding-left: 14px; padding-right: 14px;
+}
+.headerBtn {
+  height: 28px; padding: 0 10px; font-size: 12px; font-weight: 500; border-radius: 5px;
+  border: 1px solid #e2e8f0; background: #ffffff; color: #475569; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px; transition: all .1s ease;
+}
+.headerBtn:active { background: #f8fafc; }
+#topBack { background: #ffffff; border-color: #cbd5e1; color: #0f172a; font-weight: 600; display: none; }
+#appLogo { font-weight: 700; font-size: 14px; color: #0f172a; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+#curSubjectBadge { font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 3px; color: #fff; background: var(--primary); }
+#rubyBtn.on { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+#app {
+  max-width: 860px; margin: 0 auto;
+  padding: calc(48px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
+}
+
+/* ルビ */
+rt { font-size: 0.52em; font-weight: normal; color: #94a3b8; user-select: none; }
+button rt { color: inherit; }
+body.ruby { line-height: 2.15; }
+body.ruby #result, body.ruby #explain, body.ruby #passageBox { line-height: 2.2; }
+
+/* 科目タブ（アンダーライン形式のすっきりナビ） */
+#subjectNav {
+  display: flex; gap: 2px; margin: 4px 0 10px; overflow-x: auto; padding: 2px 0;
+  border-bottom: 1px solid #f1f5f9; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+#subjectNav::-webkit-scrollbar { display: none; }
+.subTabBtn {
+  flex: 1 0 auto; height: 36px; padding: 0 14px; font-size: 13.5px; font-weight: 500;
+  border: none; background: transparent; color: #64748b; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
+  border-bottom: 2px solid transparent; transition: all .12s ease;
+}
+.subTabBtn:hover { color: #0f172a; }
+.subTabBtn.active {
+  color: #0f172a; font-weight: 700; border-bottom: 2px solid var(--primary); background: transparent !important;
+}
+
+/* 学校段階別フィルター（テキストリンク風） */
+#schoolControlBar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px;
+  margin: 6px 0 12px; padding: 2px 0 8px;
+}
+.schoolFilterGroup { display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+.schoolFilterBtn {
+  font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 4px;
+  border: none; background: transparent; color: #64748b; cursor: pointer;
+  transition: all .1s ease;
+}
+.schoolFilterBtn:hover { color: #0f172a; background: #f8fafc; }
+.schoolFilterBtn.active { color: #0f172a; background: #f1f5f9; font-weight: 700; }
+.schoolToggleAllGroup { display: flex; gap: 4px; }
+.toggleAllBtn {
+  font-size: 11px; font-weight: 500; padding: 2px 6px; border-radius: 3px;
+  border: 1px solid #f1f5f9; background: #ffffff; color: #94a3b8; cursor: pointer;
+}
+.toggleAllBtn:hover { color: #475569; border-color: #cbd5e1; }
+
+/* ---- 学校別アコーディオン・セクション（区切り線ベースの超シンプルUI） ---- */
+.menuPane { display: none; text-align: left; }
+.menuPane.active { display: block; }
+
+.schoolAccordion {
+  border-bottom: 1px solid #f1f5f9; margin-bottom: 4px;
+}
+.schoolAccordion.hidden { display: none !important; }
+
+.schoolHeader {
+  width: 100%; padding: 10px 4px; background: transparent; border: none;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; text-align: left; transition: opacity .1s ease;
+}
+.schoolHeader:hover { opacity: 0.75; }
+
+.schoolTitleLeft { display: flex; align-items: center; gap: 8px; }
+.schoolTitleText { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.schoolCountBadge {
+  font-size: 11px; font-weight: 500; color: #94a3b8;
+}
+
+.schoolChevron {
+  font-size: 10px; color: #94a3b8; transition: transform .15s ease;
+}
+.schoolAccordion.open .schoolChevron { transform: rotate(180deg); }
+
+.schoolBody {
+  display: none; padding: 6px 0 14px;
+}
+.schoolAccordion.open .schoolBody { display: block; }
+
+.menuGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 4px; }
+.menuBtn {
+  min-height: 36px; padding: 6px 10px; font-size: 13px; font-weight: 500; border-radius: 6px;
+  border: 1px solid #f1f5f9; background: #fafafa; color: #334155; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; text-align: left;
+  transition: all .1s ease;
+}
+.menuBtn:hover { background: #f1f5f9; border-color: #e2e8f0; color: #0f172a; }
+.menuBtn:active { background: #e2e8f0; }
+.menuBtn .btnLabel { display: flex; align-items: center; }
+.menuBtn .btnBadge { font-size: 10.5px; font-weight: 400; color: #94a3b8; white-space: nowrap; }
+
+/* 共通ツールバー（フッターリンク風） */
+#globalTools {
+  margin-top: 24px; padding-top: 12px; border-top: 1px solid #f1f5f9;
+  display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+}
+.toolBtn {
+  height: 30px; padding: 0 10px; font-size: 12px; font-weight: 500; border-radius: 4px;
+  border: 1px solid #f1f5f9; background: #ffffff; color: #64748b; cursor: pointer;
+}
+.toolBtn:hover { background: #f8fafc; color: #0f172a; border-color: #e2e8f0; }
+.toolBtn:active { background: #f1f5f9; }
+
+/* ---- サブメニュー（単元の段階別学習メニュー） ---- */
+#unitSubMenu {
+  display: none; text-align: left; background: #ffffff; border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 16px; margin-bottom: 16px;
+}
+#subUnitHeader {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
+}
+#subUnitTitle { font-size: 17px; font-weight: 700; color: #0f172a; margin: 0; }
+#subUnitDesc { font-size: 13px; color: #64748b; line-height: 1.5; margin: 0 0 14px; }
+
+.subStepGrid { display: flex; flex-direction: column; gap: 8px; }
+.subStepCard {
+  padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-color); background: #ffffff;
+  cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  transition: all .1s ease;
+}
+.subStepCard:active { transform: scale(0.99); background: #f8fafc; }
+.subStepCard.stepFinal {
+  border-color: #cbd5e1; background: #fafafa;
+}
+.subStepCard .stepLeft { display: flex; align-items: center; gap: 10px; }
+.subStepIcon {
+  width: 30px; height: 30px; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff; background: var(--primary); shrink: 0;
+}
+.subStepCard.stepFinal .subStepIcon { background: #f59e0b; }
+.subStepInfo h4 { margin: 0 0 2px; font-size: 14.5px; font-weight: 600; color: #0f172a; }
+.subStepInfo p { margin: 0; font-size: 12px; color: #64748b; }
+.subStepBadge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; background: #f1f5f9; color: #475569; white-space: nowrap; }
+
+/* ---- 出題画面（スマホ最適化） ---- */
+body.quiz { height: var(--appH); overflow: hidden; }
+body.quiz #app {
+  height: 100%; display: flex; flex-direction: column; gap: 6px;
+  padding: calc(52px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom));
+}
+#quizCard {
+  background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 12px 14px; text-align: left;
+  display: flex; flex-direction: column; gap: 6px; flex: 0 1 auto; max-height: 38vh; overflow-y: auto;
+}
+#quizMetaRow { display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 600; color: #64748b; }
+#result { margin: 0; font-size: clamp(15px, 4.2vw, 20px); line-height: 1.55; color: #0f172a; font-weight: 600; white-space: pre-line; }
+
+/* パッセージ（文章題）ボックス */
+#passageBox {
+  display: none; background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px;
+  padding: 12px 14px; text-align: left; font-size: clamp(14px, 3.8vw, 15.5px); line-height: 1.75;
+  max-height: 28vh; overflow-y: auto; white-space: pre-line;
+}
+#passageHeader { display: flex; align-items: center; justify-content: space-between; font-weight: 700; font-size: 13.5px; color: var(--primary); margin-bottom: 6px; }
+
+/* 選択肢ボタン */
+#choicesArea { display: none; flex-direction: column; gap: 6px; margin: 4px 0; }
+.choiceOptionBtn {
+  min-height: 44px; padding: 8px 12px; font-size: 14.5px; font-weight: 600; text-align: left;
+  border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; color: #1e293b;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+}
+.choiceOptionBtn:active { background: #f8fafc; border-color: #94a3b8; }
+.choiceOptionBtn .optNum {
+  display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  border-radius: 50%; background: #f1f5f9; color: #475569; font-size: 12px; font-weight: 700; shrink: 0;
+}
+
+/* ワークスペース */
+#workspace { display: none; }
+body.quiz #workspace { display: flex; flex: 1 1 0; min-height: 0; flex-direction: column; gap: 6px; }
+
+#explain {
+  display: none; flex: 1 1 0; min-height: 0; overflow-y: auto; text-align: left; white-space: pre-line;
+  background: #ffffff; border: 1px solid var(--border-color); border-radius: 10px; padding: 12px 14px;
+  font-size: clamp(13.5px, 3.6vw, 15px); line-height: 1.65;
+}
+#explain .step { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; margin: 5px 0; }
+#explain .step .badge { display: inline-block; background: var(--primary); color: #fff; border-radius: 4px; font-size: 10.5px; font-weight: 700; padding: 1px 6px; margin-right: 6px; }
+#explain .step.ans { background: #f0fdf4; border-color: #bbf7d0; }
+#explain .step.ans .badge { background: #16a34a; }
+
+/* メモ欄 */
+#memoToggleBar { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: #64748b; padding: 2px 4px; }
+#memoToggleBtn { font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border-color); background: #ffffff; color: #475569; cursor: pointer; }
+#memoArea { display: flex; flex-direction: column; flex: 1 1 0; min-height: 60px; gap: 4px; }
+#memoArea.collapsed { display: none; }
+#memoTools { display: flex; gap: 4px; align-items: center; }
+#memoTools button { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color); background: #ffffff; cursor: pointer; }
+#memoTools button.active { background: #e0e7ff; border-color: #6366f1; color: #4338ca; }
+#memoCanvas { flex: 1 1 0; min-height: 0; width: 100%; border: 1.5px dashed #16a34a; border-radius: 10px; background: #ffffff; touch-action: none; display: block; }
+#memoText { display: none; flex: 1 1 0; min-height: 0; width: 100%; resize: none; font-size: 16px; border: 1.5px dashed #16a34a; border-radius: 10px; padding: 8px; font-family: inherit; }
+
+/* 入力欄 */
+#answerRow { display: none; flex: 0 0 auto; margin-top: 2px; }
+#answer {
+  display: block; margin: 2px auto 4px; font-size: 20px; font-weight: 700; width: min(94%, 380px); height: 44px;
+  text-align: center; border: 1.5px solid var(--primary); border-radius: 8px; font-family: inherit; outline: none; background: #ffffff;
+}
+
+#symbols { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-height: 70px; overflow-y: auto; }
+#symbols button {
+  min-width: 38px; height: 34px; font-size: 15px; font-weight: 600; padding: 0 8px; border-radius: 6px;
+  border: 1px solid var(--border-color); background: #ffffff; color: #1e293b; cursor: pointer;
+}
+
+/* ヒントボックス */
+#hintBox {
+  display: none; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;
+  padding: 10px 12px; margin: 6px 0 2px; font-size: 13px; color: #92400e; text-align: left; line-height: 1.6;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+#hintBox strong { font-weight: 700; color: #b45309; }
+.hintHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.hintCloseBtn { background: none; border: none; font-size: 12px; color: #b45309; cursor: pointer; text-decoration: underline; padding: 0; }
+.hintInlineBtn {
+  font-size: 11.5px; font-weight: 600; color: #b45309; background: #fef3c7; border: 1px solid #fde68a;
+  border-radius: 4px; padding: 2px 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+}
+.hintInlineBtn:hover { background: #fde68a; }
+
+/* 操作ボタン */
+#buttons { display: flex; gap: 6px; justify-content: center; flex: 0 0 auto; margin-top: 6px; }
+.actionBtn {
+  flex: 1 1 0; max-width: 140px; min-height: 42px; font-size: 14px; font-weight: 600;
+  border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; color: #334155; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.actionBtn:active { transform: scale(0.98); }
+#btnHint { max-width: 95px; color: #b45309; border-color: #fde68a; background: #fffbeb; }
+#btnHint:active { background: #fef3c7; }
+#checkAnswer { flex: 2 1 0 !important; max-width: 240px !important; background: var(--primary) !important; color: #ffffff !important; border-color: var(--primary) !important; font-weight: 700; }
+#checkback { background: #fafafa; border-color: #e2e8f0; color: #475569; }
+
+/* ランダムテストボタン */
+.randomTestBar {
+  display: flex; gap: 8px; margin: 4px 0 10px;
+}
+.randomTestBtn {
+  flex: 1; height: 34px; font-size: 12.5px; font-weight: 600; border-radius: 6px;
+  border: 1px dashed var(--primary); background: #f8fafc; color: var(--primary);
+  display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;
+  transition: all .1s ease;
+}
+.randomTestBtn:hover { background: #eff6ff; }
+
+/* 横画面対応 */
+@media (min-width: 768px) and (min-aspect-ratio: 5/4) {
+  body.quiz #workspace { flex-direction: row; }
+  body.quiz #passageBox { flex: 1 1 48%; max-height: none; }
+  body.quiz #memoArea, body.quiz #explain { flex: 1 1 52%; }
+}
+
+/* ノート画面 */
+#notes { display: none; }
+body.notes { height: var(--appH); overflow: hidden; }
+body.notes #app { height: 100%; display: flex; flex-direction: column; gap: 8px; padding: calc(56px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom)); }
+body.notes #notes { display: grid; flex: 1 1 0; min-height: 0; gap: 8px; text-align: left; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto auto; }
+#notesMain { grid-row: 1; min-height: 0; display: flex; flex-direction: column; gap: 6px; }
+#notesBar { display: flex; gap: 6px; align-items: center; }
+#noteSelect { flex: 1 1 auto; height: 40px; font-size: 15px; border-radius: 8px; border: 1px solid var(--border-color); padding: 0 10px; background: #fff; }
+#noteText { flex: 1 1 0; min-height: 0; width: 100%; resize: none; font-size: 17px; line-height: 1.5; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 10px; outline: none; font-family: inherit; }
+#palette { grid-row: 2; display: flex; flex-direction: column; gap: 4px; min-height: 0; }
+#palTabs { display: flex; gap: 6px; overflow-x: auto; white-space: nowrap; padding-bottom: 2px; }
+#palTabs button { flex: 0 0 auto; height: 34px; font-size: 13px; font-weight: 700; padding: 0 12px; border-radius: 17px; border: 1px solid var(--border-color); background: #ffffff; cursor: pointer; }
+#palTabs button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+#palKeys { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; max-height: 24vh; overflow-y: auto; }
+#palKeys button { min-width: 40px; height: 38px; font-size: 17px; font-weight: 600; padding: 0 6px; border-radius: 8px; border: 1px solid var(--border-color); background: #ffffff; cursor: pointer; }
+#notesBottom { grid-row: 3; display: flex; gap: 8px; justify-content: center; align-items: center; }
+
+/* 成績分析・回答分析ダッシュボード */
+#analysis { display: none; max-width: 720px; margin: 6px auto 30px; text-align: left; font-size: 14px; padding: 0 8px; }
+.anaHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+.anaTitle { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0; }
+.anaOverviewGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.anaCard { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px 12px; text-align: center; }
+.anaCard .lbl { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 4px; }
+.anaCard .val { font-size: 20px; font-weight: 800; color: #0f172a; }
+.anaCard .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+.anaSection { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+.anaSecTitle { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+
+.subProgItem { margin-bottom: 10px; }
+.subProgMeta { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; color: #334155; margin-bottom: 4px; }
+.progTrack { height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; position: relative; }
+.progFill { height: 100%; border-radius: 4px; transition: width .3s ease; }
+
+.focusList { display: flex; flex-direction: column; gap: 6px; }
+.focusItem { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 6px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 13px; }
+.focusItem.bad { background: #fff7ed; border-color: #ffedd5; }
+.focusItem.good { background: #f0fdf4; border-color: #dcfce7; }
+.focusName { font-weight: 600; color: #1e293b; }
+.focusRight { display: flex; align-items: center; gap: 8px; }
+.jumpReviewBtn { font-size: 11.5px; font-weight: 600; padding: 3px 8px; border-radius: 4px; border: 1px solid #cbd5e1; background: #ffffff; color: #334155; cursor: pointer; }
+.jumpReviewBtn:hover { background: #f1f5f9; color: #0f172a; }
+
+.feedbackCard { background: #f8fafc; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); padding: 12px 14px; border-radius: 6px; line-height: 1.6; font-size: 13px; color: #334155; margin-bottom: 14px; }
+.feedbackCard strong { color: #0f172a; font-weight: 700; }
+
+.wrongLogBox { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.wrongLogItem { padding: 8px 10px; border-radius: 6px; background: #fafafa; border: 1px solid #f1f5f9; font-size: 12.5px; line-height: 1.5; }
+.wrongLogItem .qTitle { font-weight: 600; color: #475569; margin-bottom: 2px; }
+.wrongLogItem .qAns { color: #dc2626; font-weight: 600; }
+.wrongLogItem .qExp { color: #64748b; font-size: 12px; margin-top: 2px; }
+
+/* 間違い分析・フィードバック関連 */
+.mistakeDiagnosisBox {
+  margin-top: 10px;
+  background: #fef2f2;
+  border: 1.5px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  line-height: 1.5;
+}
+.mistakeDiagHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+.mistakeTag {
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #fca5a5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mistakeLabel {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #b91c1c;
+}
+.mistakeDetail {
+  font-size: 12.5px;
+  color: #450a0a;
+  margin-bottom: 6px;
+  line-height: 1.55;
+}
+.mistakeAdviceBox {
+  background: #ffffff;
+  border-left: 3px solid #ef4444;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #1f2937;
+  line-height: 1.5;
+}
+.mistakePatternBadge {
+  display: inline-block;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 4px;
+  border: 1px solid #fecaca;
+}
+.subjMistakeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+.subjMistakeCard {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.subjMistakeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.subjMistakeTitle {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.subjMistakeCount {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #dc2626;
+  background: #fef2f2;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid #fee2e2;
+}
+.mistakeRankItem {
+  margin-bottom: 8px;
+}
+.mistakeRankMeta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 3px;
+}
+.mistakeProgTrack {
+  height: 6px;
+  background: #f1f5f9;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.mistakeProgFill {
+  height: 100%;
+  background: #ef4444;
+  border-radius: 3px;
+}
+.subjMistakeAdvice {
+  margin-top: 10px;
+  background: #f8fafc;
+  border-left: 3px solid #3b82f6;
+  border-radius: 4px;
+  padding: 6px 9px;
+  font-size: 11.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+/* ---- 最近の学習履歴（タイムライン・フィルター・復習連携） ---- */
+#historyView {
+  display: none;
+  max-width: 760px;
+  margin: 6px auto 30px;
+  text-align: left;
+  font-size: 14px;
+  padding: 0 8px;
+}
+.histHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.histTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.histOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.histStatCard {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+}
+.histStatCard .lbl {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+.histStatCard .val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+}
+.histFilterBar {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.histFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.histFilterLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 50px;
+}
+.histFilterBtn {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  cursor: pointer;
+  transition: all .1s ease;
+}
+.histFilterBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.histFilterBtn.active {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  font-weight: 700;
+}
+.histSearchInput {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  background: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+}
+.histSearchInput:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+}
+.histCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.histCard {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  transition: border-color .15s ease;
+}
+.histCard:hover {
+  border-color: #cbd5e1;
+}
+.histCard.isCorrect {
+  border-left: 4px solid #16a34a;
+}
+.histCard.isWrong {
+  border-left: 4px solid #ef4444;
+}
+.histCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+.histCardMetaLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.histSubjPill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  color: #ffffff;
+}
+.histUnitPill {
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.histTimeText {
+  font-size: 11px;
+  color: #94a3b8;
+}
+.histBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+}
+.histBadgeCorrect {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.histBadgeWrong {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+.histBadgeHint {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  margin-left: 4px;
+}
+.histQText {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+.histAnsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+.histAnsItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.histDiagBox {
+  background: #fff5f5;
+  border: 1px solid #fed7aa;
+  border-left: 3px solid #ef4444;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: #7f1d1d;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+.histActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #f1f5f9;
+}
+.histExpToggleBtn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+}
+.histExpToggleBtn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+.histExpContent {
+  display: none;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.6;
+}
+.histExpContent.open {
+  display: block;
+}
+.histJumpBtn {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #2563eb;
+  cursor: pointer;
+}
+.histJumpBtn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+</style>
+</head>
+<body>
+
+<header id="topBar">
+  <div class="leftGroup" style="display: flex; align-items: center; gap: 8px;">
+    <button id="topBack" class="headerBtn" type="button" onclick="window.handleTopBack()">← 戻る</button>
+    <div id="appLogo" onclick="window.goHome()">
+      <span>総合学習ナビ</span>
+      <span id="curSubjectBadge">算数・数学</span>
+    </div>
+  </div>
+  <div class="rightGroup" style="display: flex; align-items: center; gap: 6px;">
+    <button id="historyHeaderBtn" class="headerBtn" type="button" onclick="window.openRecentHistory()" title="最近の学習履歴を見る">📋 履歴</button>
+    <button id="rubyBtn" class="headerBtn" type="button" onclick="window.toggleRuby()" aria-pressed="false">ルビ：OFF</button>
+  </div>
+</header>
+
+<div id="app">
+
+  <!-- サブメニュー（単元の段階別学習・まとめテスト画面） -->
+  <div id="unitSubMenu">
+    <div id="subUnitHeader">
+      <h2 id="subUnitTitle">単元名</h2>
+      <button class="headerBtn" onclick="window.goHome()">← メインメニュー</button>
+    </div>
+    <p id="subUnitDesc">単元内の段階的なステップ学習と、最後のまとめテストに挑戦できます。</p>
+    <div class="subStepGrid" id="subStepList"></div>
+  </div>
+
+  <!-- 出題カード -->
+  <div id="quizCard" style="display: none;">
+    <div id="quizMetaRow" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <span id="quizUnitName">単元名</span>
+        <span id="quizStepBadge" style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:4px;font-weight:600;">基礎</span>
+      </div>
+      <button class="hintInlineBtn" id="quizInlineHintBtn" type="button" onclick="window.toggleHint()">💡 ヒント</button>
+    </div>
+    <div id="result"></div>
+    <div id="hintBox"></div>
+    <div id="choicesArea"></div>
+  </div>
+
+  <!-- 文章題（パッセージ）表示ボックス -->
+  <div id="passageBox">
+    <div id="passageHeader">
+      <span id="passageTitleText">文章題</span>
+      <span id="passageGenreBadge" style="font-size: 11px; padding: 2px 8px; border-radius: 8px; background: #e2e8f0; color: #334155;">物語文</span>
+    </div>
+    <div id="passageContent"></div>
+  </div>
+
+  <!-- 成績分析 -->
+  <div id="analysis"></div>
+
+  <!-- 最近の学習履歴画面 -->
+  <div id="historyView" style="display: none;"></div>
+
+  <!-- 回答入力欄 -->
+  <div id="answerRow">
+    <input id="answer" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="答えを入力">
+    <div id="symbols"></div>
+  </div>
+
+  <!-- 科目切替タブ（メインメニュー） -->
+  <div id="subjectNav">
+    <button class="subTabBtn active" data-subj="math" onclick="window.switchSubjectTab('math')">数学・算数</button>
+    <button class="subTabBtn" data-subj="japanese" onclick="window.switchSubjectTab('japanese')">国語</button>
+    <button class="subTabBtn" data-subj="english" onclick="window.switchSubjectTab('english')">英語</button>
+    <button class="subTabBtn" data-subj="science" onclick="window.switchSubjectTab('science')">理科</button>
+    <button class="subTabBtn" data-subj="social" onclick="window.switchSubjectTab('social')">社会</button>
+  </div>
+
+  <!-- ランダム実力テスト実行バー -->
+  <div class="randomTestBar" id="randomTestBar">
+    <button class="randomTestBtn" type="button" onclick="window.startSubjectRandomTest()">🎲 この科目のランダム総合テスト (10問)</button>
+  </div>
+
+  <!-- 学校別格納フィルター ＆ 一括開閉バー -->
+  <div id="schoolControlBar">
+    <div class="schoolFilterGroup">
+      <span style="font-size: 11.5px; color: #94a3b8; margin-right: 2px;">絞込:</span>
+      <button class="schoolFilterBtn active" data-filter="all" onclick="window.filterSchoolLevel('all')">すべて</button>
+      <button class="schoolFilterBtn" data-filter="elem" onclick="window.filterSchoolLevel('elem')">小学校</button>
+      <button class="schoolFilterBtn" data-filter="junior" onclick="window.filterSchoolLevel('junior')">中学校</button>
+      <button class="schoolFilterBtn" data-filter="high" onclick="window.filterSchoolLevel('high')">高校</button>
+      <button class="schoolFilterBtn" data-filter="uni" id="schoolFilterBtnUni" onclick="window.filterSchoolLevel('uni')">大学</button>
+    </div>
+    <div class="schoolToggleAllGroup">
+      <button class="toggleAllBtn" type="button" onclick="window.toggleAllAccordions(true)">すべて展開</button>
+      <button class="toggleAllBtn" type="button" onclick="window.toggleAllAccordions(false)">すべて格納</button>
+    </div>
+  </div>
+
+  <!-- メインメニュー：算数・数学（小〜大学） -->
+  <div id="menu_math" class="menuPane active">
+    <!-- 小学校 -->
+    <div class="schoolAccordion open" data-school="elem" id="acc_math_elem">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_math_elem')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">小学校（算数）</span>
+          <span class="schoolCountBadge" id="cnt_math_elem">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="mathGrid_elem"></div>
+      </div>
+    </div>
+
+    <!-- 中学校 -->
+    <div class="schoolAccordion open" data-school="junior" id="acc_math_junior">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_math_junior')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">中学校（数学）</span>
+          <span class="schoolCountBadge" id="cnt_math_junior">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="mathGrid_junior"></div>
+      </div>
+    </div>
+
+    <!-- 高校 -->
+    <div class="schoolAccordion" data-school="high" id="acc_math_high">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_math_high')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">高校（数学I・A・II・B・III・C）</span>
+          <span class="schoolCountBadge" id="cnt_math_high">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="mathGrid_high"></div>
+      </div>
+    </div>
+
+    <!-- 大学 -->
+    <div class="schoolAccordion" data-school="uni" id="acc_math_uni">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_math_uni')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">大学（教養数学）</span>
+          <span class="schoolCountBadge" id="cnt_math_uni">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="mathGrid_uni"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインメニュー：国語（小〜高校） -->
+  <div id="menu_japanese" class="menuPane">
+    <!-- 小学校 -->
+    <div class="schoolAccordion open" data-school="elem" id="acc_jp_elem">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_jp_elem')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">小学校（国語）</span>
+          <span class="schoolCountBadge" id="cnt_jp_elem">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="jpGrid_elem"></div>
+      </div>
+    </div>
+
+    <!-- 中学校 -->
+    <div class="schoolAccordion open" data-school="junior" id="acc_jp_junior">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_jp_junior')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">中学校（国語）</span>
+          <span class="schoolCountBadge" id="cnt_jp_junior">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="jpGrid_junior"></div>
+      </div>
+    </div>
+
+    <!-- 高校 -->
+    <div class="schoolAccordion" data-school="high" id="acc_jp_high">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_jp_high')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">高校（現代文・古典）</span>
+          <span class="schoolCountBadge" id="cnt_jp_high">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="jpGrid_high"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインメニュー：英語（小〜高校） -->
+  <div id="menu_english" class="menuPane">
+    <!-- 小学校/初級 -->
+    <div class="schoolAccordion open" data-school="elem" id="acc_en_elem">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_en_elem')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">小学校（初級英語）</span>
+          <span class="schoolCountBadge" id="cnt_en_elem">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="enGrid_elem"></div>
+      </div>
+    </div>
+
+    <!-- 中学校 -->
+    <div class="schoolAccordion open" data-school="junior" id="acc_en_junior">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_en_junior')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">中学校（英語）</span>
+          <span class="schoolCountBadge" id="cnt_en_junior">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="enGrid_junior"></div>
+      </div>
+    </div>
+
+    <!-- 高校 -->
+    <div class="schoolAccordion" data-school="high" id="acc_en_high">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_en_high')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">高校（英語コミュニケーション・論理表現）</span>
+          <span class="schoolCountBadge" id="cnt_en_high">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="enGrid_high"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインメニュー：理科（小〜高校） -->
+  <div id="menu_science" class="menuPane">
+    <!-- 小学校 -->
+    <div class="schoolAccordion open" data-school="elem" id="acc_sci_elem">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_sci_elem')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">小学校（理科）</span>
+          <span class="schoolCountBadge" id="cnt_sci_elem">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="sciGrid_elem"></div>
+      </div>
+    </div>
+
+    <!-- 中学校 -->
+    <div class="schoolAccordion open" data-school="junior" id="acc_sci_junior">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_sci_junior')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">中学校（理科）</span>
+          <span class="schoolCountBadge" id="cnt_sci_junior">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="sciGrid_junior"></div>
+      </div>
+    </div>
+
+    <!-- 高校 -->
+    <div class="schoolAccordion" data-school="high" id="acc_sci_high">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_sci_high')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">高校（物理・化学・生物・地学）</span>
+          <span class="schoolCountBadge" id="cnt_sci_high">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="sciGrid_high"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- メインメニュー：社会（小〜高校） -->
+  <div id="menu_social" class="menuPane">
+    <!-- 小学校 -->
+    <div class="schoolAccordion open" data-school="elem" id="acc_soc_elem">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_soc_elem')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">小学校（社会）</span>
+          <span class="schoolCountBadge" id="cnt_soc_elem">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="socGrid_elem"></div>
+      </div>
+    </div>
+
+    <!-- 中学校 -->
+    <div class="schoolAccordion open" data-school="junior" id="acc_soc_junior">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_soc_junior')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">中学校（地理・歴史・公民）</span>
+          <span class="schoolCountBadge" id="cnt_soc_junior">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="socGrid_junior"></div>
+      </div>
+    </div>
+
+    <!-- 高校 -->
+    <div class="schoolAccordion" data-school="high" id="acc_soc_high">
+      <button class="schoolHeader" type="button" onclick="window.toggleAccordion('acc_soc_high')">
+        <div class="schoolTitleLeft">
+          <span class="schoolTitleText">高校（日本史・世界史・地理・公共）</span>
+          <span class="schoolCountBadge" id="cnt_soc_high">0単元</span>
+        </div>
+        <span class="schoolChevron">▼</span>
+      </button>
+      <div class="schoolBody">
+        <div class="menuGrid" id="socGrid_high"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 共通ツール -->
+  <div id="globalTools">
+    <button class="toolBtn" onclick="window.openNotes()">学習ノート</button>
+    <button class="toolBtn" onclick="window.checkanalysis()">学習分析・レポート</button>
+    <button class="toolBtn" onclick="window.openRecentHistory()">📋 最近の学習履歴</button>
+    <button class="toolBtn" onclick="window.checkreset()">記録消去</button>
+  </div>
+  <div style="margin-top: 10px;">
+    <label style="font-size: 12px; color: #94a3b8;"><input type="checkbox" id="optExplain" onchange="window.setOption()"> 正解時も解説を表示</label>
+  </div>
+
+  <!-- ワークスペース -->
+  <div id="workspace">
+    <div id="explain"></div>
+    <div id="memoArea">
+      <div id="memoToggleBar">
+        <span>計算メモ</span>
+        <div id="memoTools">
+          <button id="memoBtnDraw" onclick="window.memoSwitch('draw')">手書き</button>
+          <button id="memoBtnText" onclick="window.memoSwitch('text')">テキスト</button>
+          <button id="memoBtnPen" onclick="window.memoSetTool('pen')">ペン</button>
+          <button id="memoBtnEraser" onclick="window.memoSetTool('eraser')">消しゴム</button>
+          <button onclick="window.memoClear()">消去</button>
+          <button id="memoToggleBtn" onclick="window.toggleMemoCollapse()">最小化</button>
+        </div>
+      </div>
+      <canvas id="memoCanvas" width="900" height="400"></canvas>
+      <textarea id="memoText" placeholder="計算や考え方をここに書けます"></textarea>
+    </div>
+  </div>
+
+  <!-- 数式・記号ノート画面 -->
+  <div id="notes">
+    <div id="notesMain">
+      <div id="notesBar">
+        <select id="noteSelect" aria-label="メモを選ぶ"></select>
+        <button type="button" class="headerBtn" id="noteNew">＋ 新規</button>
+        <button type="button" class="headerBtn" id="noteRename">名前</button>
+        <button type="button" class="headerBtn" id="noteDelete">削除</button>
+      </div>
+      <textarea id="noteText" placeholder="自由にメモできます。下の記号をタップすると入力されます。" spellcheck="false"></textarea>
+    </div>
+    <div id="palette">
+      <div id="palTabs"></div>
+      <div id="palKeys"></div>
+    </div>
+    <div id="notesBottom">
+      <button type="button" class="headerBtn" id="noteCopy">📋 コピー</button>
+      <button type="button" class="headerBtn" id="noteBack" onclick="window.goHome()">← 戻る</button>
+    </div>
+  </div>
+
+  <!-- ボトム操作ボタン -->
+  <div id="buttons">
+    <button id="checkback" class="actionBtn" type="button" onclick="window.handleCheckBack()">← 戻る</button>
+    <button id="btnHint" class="actionBtn" type="button" onclick="window.toggleHint()">💡 ヒント</button>
+    <button id="checkAnswer" class="actionBtn" type="button" onclick="window.checkAnswer()">回答する</button>
+  </div>
+
+</div>
+
+<!-- 超高効率・180単元網羅コアスクリプト -->
+<script>
+(function() {
+  'use strict';
+
+  let currentSubject = 'math';
+  let currentUnit = null;
+  let currentStep = null;
+  let currentPassage = null;
+  let currentPassageQIdx = 0;
+  let isPassageMode = false;
+  let questionCount = 1;
+  let correctAnswer = null;
+  let answerCount = 0;
+  let sessionId = 0;
+  let nextResolver = null;
+  let explainText = "";
+  let hintText = "";
+  let isHintVisible = false;
+  let isMemoCollapsed = false;
+  let usedHintInCurrentQuestion = false;
+  let streak = 0;
+  let maxStreak = 0;
+  let isRandomTestMode = false;
+  let randomTestQueue = [];
+  let randomTestTotal = 10;
+  let randomTestScore = 0;
+  let currentChoiceList = [];
+  let currentMathKey = "";
+  let recentHistory = [];
+  let histFilterResult = 'all';
+  let histFilterSubj = 'all';
+  let histSearchKeyword = '';
+
+  const SETTINGS_KEY = "comprehensiveDrill.v9";
+  const settings = { explainOnCorrect: false, ruby: false };
+  let subjectStats = {
+    math: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+    japanese: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+    english: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+    science: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+    social: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} }
+  };
+
+  const SUBJ_INFO = {
+    math: { name: "算数・数学", theme: "var(--theme-math)" },
+    japanese: { name: "国語", theme: "var(--theme-jp)" },
+    english: { name: "英語", theme: "var(--theme-en)" },
+    science: { name: "理科", theme: "var(--theme-sci)" },
+    social: { name: "社会", theme: "var(--theme-soc)" }
+  };
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  function randRange(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+  function randNZ(min, max) { let n = 0; while (n === 0) n = randRange(min, max); return n; }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function shuffleArray(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  function pn(n) { return n < 0 ? "(" + n + ")" : String(n); }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function normalizeNumberText(s) {
+    return String(s)
+      .replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+      .replace(/[−ー―‐－]/g, "-").replace(/＋/g, "+").replace(/／/g, "/").replace(/．/g, ".")
+      .replace(/[，、]/g, " ").replace(/　/g, " ").trim();
+  }
+  function show(id, display) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = display;
+    if (id === "answer") document.getElementById("answerRow").style.display = display;
+  }
+  function setQuiz(on) {
+    document.body.classList.toggle("quiz", on);
+    document.body.classList.remove("notes");
+    if (on) fitMemoCanvas();
+    updateTopBack();
+  }
+  function updateTopBack() {
+    const isQuiz = document.body.classList.contains("quiz");
+    const isNotes = document.body.classList.contains("notes");
+    const isSubMenu = document.getElementById("unitSubMenu").style.display !== "none";
+    const isAnalysis = document.getElementById("analysis").style.display !== "none";
+    const isHistory = document.getElementById("historyView") && document.getElementById("historyView").style.display !== "none";
+    document.getElementById("topBack").style.display = (isQuiz || isNotes || isSubMenu || isAnalysis || isHistory) ? "inline-flex" : "none";
+  }
+
+  // --- 戻る処理 ---
+  window.handleTopBack = function() {
+    if (document.body.classList.contains("quiz")) {
+      if (isRandomTestMode) {
+        if (confirm("ランダムテストを終了してメインメニューへ戻りますか？")) window.goHome();
+      } else if (currentUnit) {
+        window.openUnitSubMenu(currentUnit.id);
+      } else {
+        window.goHome();
+      }
+    } else if (document.getElementById("unitSubMenu").style.display !== "none") {
+      window.goHome();
+    } else {
+      window.goHome();
+    }
+  };
+  window.handleCheckBack = window.handleTopBack;
+
+  window.goHome = function() {
+    sessionId++;
+    if (nextResolver) { const r = nextResolver; nextResolver = null; r(); }
+    isPassageMode = false;
+    currentPassage = null;
+    currentUnit = null;
+    currentStep = null;
+    answerCount = 0;
+    isRandomTestMode = false;
+    randomTestQueue = [];
+    setQuiz(false);
+
+    ["quizCard", "passageBox", "workspace", "answerRow", "buttons", "analysis", "notes", "unitSubMenu", "historyView"].forEach(id => show(id, "none"));
+    document.getElementById("result").textContent = "";
+    document.getElementById("choicesArea").innerHTML = "";
+    document.getElementById("choicesArea").style.display = "none";
+    hideHintBox();
+
+    document.getElementById("subjectNav").style.display = "flex";
+    const randBar = document.getElementById("randomTestBar");
+    if (randBar) randBar.style.display = "flex";
+    document.getElementById("globalTools").style.display = "flex";
+    window.switchSubjectTab(currentSubject);
+    updateTopBack();
+  };
+  window.checkback = window.goHome;
+
+  function hideHintBox() {
+    isHintVisible = false;
+    const hb = document.getElementById("hintBox");
+    if (hb) { hb.style.display = "none"; hb.innerHTML = ""; }
+    const btn = document.getElementById("btnHint");
+    if (btn) btn.textContent = "💡 ヒント";
+    const inlineBtn = document.getElementById("quizInlineHintBtn");
+    if (inlineBtn) inlineBtn.textContent = "💡 ヒント";
+  }
+
+  window.toggleHint = function() {
+    const hb = document.getElementById("hintBox");
+    if (!hb) return;
+    isHintVisible = !isHintVisible;
+    if (isHintVisible) {
+      usedHintInCurrentQuestion = true;
+      subjectStats[currentSubject].usedHint = (subjectStats[currentSubject].usedHint || 0) + 1;
+      saveData();
+      hb.innerHTML = `
+        <div class="hintHeader">
+          <strong>💡 解法のヒント・着眼点</strong>
+          <button class="hintCloseBtn" type="button" onclick="window.toggleHint()">閉じる</button>
+        </div>
+        <div>${esc(hintText || "問題文や選択肢のキーワードに注目して、これまでの学習内容を思い出してみましょう。")}</div>
+      `;
+      hb.style.display = "block";
+      const btn = document.getElementById("btnHint");
+      if (btn) btn.textContent = "ヒント隠す";
+      const inlineBtn = document.getElementById("quizInlineHintBtn");
+      if (inlineBtn) inlineBtn.textContent = "ヒント隠す";
+    } else {
+      hb.style.display = "none";
+      const btn = document.getElementById("btnHint");
+      if (btn) btn.textContent = "💡 ヒント";
+      const inlineBtn = document.getElementById("quizInlineHintBtn");
+      if (inlineBtn) inlineBtn.textContent = "💡 ヒント";
+    }
+  };
+
+
+  window.switchSubjectTab = function(subjKey) {
+    currentSubject = subjKey;
+    document.documentElement.style.setProperty("--primary", SUBJ_INFO[subjKey].theme);
+    document.getElementById("curSubjectBadge").textContent = SUBJ_INFO[subjKey].name;
+    document.getElementById("curSubjectBadge").style.background = SUBJ_INFO[subjKey].theme;
+    
+    document.querySelectorAll(".subTabBtn").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-subj") === subjKey);
+    });
+    document.querySelectorAll(".menuPane").forEach(p => {
+      p.classList.toggle("active", p.id === "menu_" + subjKey);
+    });
+
+    // 大学フィルターボタンの表示/非表示（数学のみ大学単元あり）
+    const uniFilterBtn = document.getElementById("schoolFilterBtnUni");
+    if (uniFilterBtn) {
+      uniFilterBtn.style.display = (subjKey === "math") ? "inline-block" : "none";
+      if (currentSchoolFilter === "uni" && subjKey !== "math") {
+        window.filterSchoolLevel("all");
+      }
+    }
+    // 現在のフィルターを適用
+    applySchoolFilter(currentSchoolFilter);
+  };
+
+  // --- 学校別アコーディオン・フィルター機能 ---
+  let currentSchoolFilter = "all";
+
+  window.toggleAccordion = function(accId) {
+    const acc = document.getElementById(accId);
+    if (!acc) return;
+    acc.classList.toggle("open");
+  };
+
+  window.toggleAllAccordions = function(openState) {
+    const curPane = document.querySelector(".menuPane.active");
+    if (!curPane) return;
+    curPane.querySelectorAll(".schoolAccordion").forEach(acc => {
+      acc.classList.toggle("open", !!openState);
+    });
+  };
+
+  window.filterSchoolLevel = function(level) {
+    currentSchoolFilter = level;
+    document.querySelectorAll(".schoolFilterBtn").forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-filter") === level);
+    });
+    applySchoolFilter(level);
+  };
+
+  function applySchoolFilter(level) {
+    const curPane = document.querySelector(".menuPane.active");
+    if (!curPane) return;
+    curPane.querySelectorAll(".schoolAccordion").forEach(acc => {
+      const sch = acc.getAttribute("data-school");
+      if (level === "all" || sch === level) {
+        acc.classList.remove("hidden");
+        // 絞り込み時は自動でアコーディオンを展開
+        if (level !== "all") acc.classList.add("open");
+      } else {
+        acc.classList.add("hidden");
+      }
+    });
+  }
+
+  function updateSchoolCounts() {
+    const counts = {};
+    UNIT_CATALOG.forEach(u => {
+      const k = u.subj + "_" + u.group;
+      counts[k] = (counts[k] || 0) + 1;
+    });
+    const map = {
+      cnt_math_elem: counts["math_elem"] || 0,
+      cnt_math_junior: counts["math_junior"] || 0,
+      cnt_math_high: counts["math_high"] || 0,
+      cnt_math_uni: counts["math_uni"] || 0,
+      cnt_jp_elem: counts["japanese_elem"] || 0,
+      cnt_jp_junior: counts["japanese_junior"] || 0,
+      cnt_jp_high: counts["japanese_high"] || 0,
+      cnt_en_elem: counts["english_elem"] || 0,
+      cnt_en_junior: counts["english_junior"] || 0,
+      cnt_en_high: counts["english_high"] || 0,
+      cnt_sci_elem: counts["science_elem"] || 0,
+      cnt_sci_junior: counts["science_junior"] || 0,
+      cnt_sci_high: counts["science_high"] || 0,
+      cnt_soc_elem: counts["social_elem"] || 0,
+      cnt_soc_junior: counts["social_junior"] || 0,
+      cnt_soc_high: counts["social_high"] || 0
+    };
+    Object.keys(map).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = map[id] + "単元";
+    });
+  }
+
+  // --- ルビ機能 ---
+  const RUBY_DICT = {
+    "基礎計算": "きそけいさん", "図形計算": "ずけいけいさん", "高次計算": "こうじけいさん", "論理的計算": "ろんりてきけいさん",
+    "数式": "すうしき", "記号": "きごう", "解説": "かいせつ", "表示": "ひょうじ", "手書き": "てがき", "回答": "かいとう",
+    "問題": "もんだい", "正解率": "せいかいりつ", "不正解": "ふせいかい", "正解": "せいかい", "二桁": "にけた", "九九": "くく",
+    "数直線": "すうちょくせん", "正負": "せいふ", "整数": "せいすう", "平方根": "へいほうこん", "一次方程式": "いちじほうていしき",
+    "二次方程式": "にじほうていしき", "一次関数": "いちじかんすう", "二次関数": "にじかんすう", "三平方の定理": "さんへいほうのていり",
+    "三角比": "さんかくひ", "連立方程式": "れんりつほうていしき", "因数分解": "いんすうぶんかい", "展開": "てんかい", "不等式": "ふとうしき",
+    "微分": "びぶん", "積分": "せきぶん", "極限": "きょくげん", "偏微分": "へんびぶん", "行列式": "ぎょうれつしき", "逆行列": "ぎゃくぎょうれつ",
+    "固有値": "こゆうち", "現代文": "げんだいぶん", "古文": "こぶん", "漢文": "かんぶん", "漢字": "かんじ", "ことわざ": "ことわざ",
+    "慣用句": "かんようく", "四字熟語": "よじじゅくご", "敬語": "けいご", "故事成語": "こじせいご", "品詞": "ひんし", "動詞": "どうし",
+    "形容詞": "けいようし", "助詞": "じょし", "助動詞": "じょどうし", "歴史的仮名遣い": "れきしてきかなづかい", "返り点": "かえりてん",
+    "読解": "どっかい", "英文法": "えいぶんぽう", "不規則動詞": "ふきそくどうし", "現在完了": "げんざいかんりょう", "受動態": "じゅどうたい",
+    "仮定法": "かていほう", "光合成": "こうごうせい", "水溶液": "すいようえき", "酸性": "さんせい", "アルカリ性": "アルカリせい",
+    "てこ": "てこ", "支点": "してん", "顕微鏡": "けんびきょう", "細胞": "さいぼう", "電流": "でんりゅう", "電圧": "でんあつ",
+    "オームの法則": "オームのほうそく", "中和": "ちゅうわ", "遺伝": "いでん", "地震": "じしん", "前線": "ぜんせん",
+    "物質量": "ぶっしつりょう", "等加速度": "とうかそくど", "都道府県": "とどうふけん", "気候帯": "きこうたい", "幕府": "ばくふ",
+    "明治維新": "めいじいしん", "日本国憲法": "にほんこくけんぽう", "三権分立": "さんけんぶんりつ", "国会": "こっかい", "内閣": "ないかく",
+    "裁判所": "さいばんしょ", "需要と供給": "じゅようときょうきゅう"
+  };
+  const RUBY_RE = new RegExp(Object.keys(RUBY_DICT).sort((a, b) => b.length - a.length).join("|"), "g");
+  let rubyOn = false;
+
+  function applyRuby() {
+    const root = document.getElementById("app");
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => (n.data.trim() && n.parentElement && !n.parentElement.closest("svg,textarea,select,option,rt,ruby,script,style,#symbols,#memoCanvas")) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(n => {
+      RUBY_RE.lastIndex = 0;
+      if (!RUBY_RE.test(n.data)) return;
+      RUBY_RE.lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      let last = 0, m;
+      while ((m = RUBY_RE.exec(n.data))) {
+        if (m.index > last) frag.appendChild(document.createTextNode(n.data.slice(last, m.index)));
+        const r = document.createElement("ruby");
+        r.appendChild(document.createTextNode(m[0]));
+        const rt = document.createElement("rt");
+        rt.textContent = RUBY_DICT[m[0]];
+        r.appendChild(rt);
+        frag.appendChild(r);
+        last = m.index + m[0].length;
+      }
+      if (last < n.data.length) frag.appendChild(document.createTextNode(n.data.slice(last)));
+      n.parentNode.replaceChild(frag, n);
+    });
+  }
+
+  function removeRuby() {
+    const root = document.getElementById("app");
+    root.querySelectorAll("ruby").forEach(r => r.replaceWith(document.createTextNode(r.firstChild.textContent)));
+  }
+
+  window.toggleRuby = function() {
+    rubyOn = !rubyOn;
+    document.body.classList.toggle("ruby", rubyOn);
+    const b = document.getElementById("rubyBtn");
+    b.textContent = "ルビ：" + (rubyOn ? "ON" : "OFF");
+    b.classList.toggle("on", rubyOn);
+    if (rubyOn) applyRuby(); else removeRuby();
+    settings.ruby = rubyOn;
+    saveData();
+  };
+
+  // --- パッセージ ---
+  const PASSAGES = {
+    jp_p_elem1: {
+      id: "jp_p_elem1", subject: "japanese", level: "小学生", genre: "物語文", title: "ごんぎつね（新美南吉）",
+      text: `小ぎつねのごんは、ひとりぼっちのこぎつねで、森の中に穴をほって住んでいました。\nある秋のこと、ごんは兵十（ひょうじゅう）が川でうなぎをとっているのを見つけました。【1】いたずら好きのごんは、兵十がいなくなったすきに、びくの中のうなぎを川へにがしてしまいました。\nそれから十日ほどたって、兵十の家でおそう式がありました。ごんは、兵十の病気のおっかあが死んだのだと知りました。「ああ、うなぎはおっかあに食べさせるつもりだったんだな。わるいことをしてしまった。」と、ごんは深く【2】こうかいしました。\nそれからというもの、ごんはつぐないのために、まいにち山でくりやまつたけをひろっては、兵十の家の物置にそっと置いていくようになりました。`,
+      questions: [
+        { q: "傍線部【1】について、ごんがうなぎをにがしてしまった理由は何ですか。", options: ["兵十をこまらせようとするいたずら心から", "うなぎがかわいそうだったから", "自分がうなぎを食べたかったから", "お母さんを助けたかったから"], ans: 1, explain: "本文に「いたずら好きのごんは、兵十がいなくなったすきに」とある通り、いたずら心からです。" },
+        { q: "傍線部【2】「こうかい」の正しい漢字はどれですか。", options: ["後悔", "公開", "航海", "更改"], ans: 1, explain: "あとから悔やむ気持ちは「後悔」です。" },
+        { q: "ごんが兵十の家にくりやまつたけを届けるようになったのは何のためですか。", options: ["いたずらしたことへのつぐないのため", "兵十と友だちになりたかったため", "くりが山にあまっていたため", "お礼を言ってもらいたかったため"], ans: 1, explain: "本文に「つぐないのために…置いていくようになりました」とあります。" }
+      ]
+    },
+    en_p_elem1: {
+      id: "en_p_elem1", subject: "english", level: "初級", genre: "日記", title: "My School Trip to Kyoto",
+      text: `Hello, I am Ken. Last week, I went to Kyoto with my classmates on a school trip.\nWe visited many famous places. First, we saw Kinkaku-ji. It was very beautiful and shiny. Next, we walked through the red gates at Fushimi Inari Shrine.\nFor lunch, we ate traditional Japanese noodles called udon. It was delicious!\nI had a wonderful time in Kyoto. I want to visit there again with my family.`,
+      questions: [
+        { q: "Where did Ken go on his school trip?", options: ["Kyoto", "Tokyo", "Osaka", "Nara"], ans: 1, explain: "本文第1文「I went to Kyoto... on a school trip」より京都です。" },
+        { q: "What did Ken eat for lunch?", options: ["Udon", "Ramen", "Curry", "Sushi"], ans: 1, explain: "第3段落「we ate traditional Japanese noodles called udon」よりうどんです。" }
+      ]
+    }
+  };
+
+  // --- 単元マスター定義（大幅拡充・180単元以上対応） ---
+  const UNIT_CATALOG = [];
+
+  function addUnit(id, subj, group, name, badge, desc, genKey) {
+    UNIT_CATALOG.push({
+      id: id, subj: subj, group: group, name: name, badge: badge, desc: desc,
+      steps: {
+        step1: { name: "STEP 1: 基礎確認", desc: "公式や定義の理解と基本問題", key: genKey, level: 1 },
+        step2: { name: "STEP 2: 標準演習", desc: "典型的な練習問題・計算", key: genKey, level: 2 },
+        step3: { name: "STEP 3: 発展・応用", desc: "思考力を問う応用問題", key: genKey, level: 3 },
+        random: { name: "🎲 ランダム特訓", desc: "単元の全ステップからランダムに5問出題", key: genKey, level: 0 },
+        test:  { name: "🏆 単元まとめテスト", desc: "実力を判定する総仕上げ（5問）", key: genKey, level: 4 }
+      }
+    });
+  }
+
+  // 1. 算数・数学（小〜大学 53単元）
+  addUnit("m_1", "math", "elem", "たし算・ひき算の筆算", "小1-3", "二桁・三桁の繰り上がりと繰り下がり", "math_addsub");
+  addUnit("m_2", "math", "elem", "九九とかけ算の筆算", "小2-3", "九九から二桁×一桁の筆算", "math_mul");
+  addUnit("m_3", "math", "elem", "わり算（あまりあり）", "小3-4", "等分除・包含除とあまりの処理", "math_div");
+  addUnit("m_4", "math", "elem", "小数の計算", "小4-5", "小数点の位置と四則演算", "math_dec");
+  addUnit("m_5", "math", "elem", "分数のたし算・ひき算", "小5-6", "約分・通分と同分母・異分母計算", "math_frac_add");
+  addUnit("m_6", "math", "elem", "分数のかけ算・わり算", "小6", "逆数と分数の乗除", "math_frac_mul");
+  addUnit("m_7", "math", "elem", "約数と倍数", "小5", "最大公約数と最小公倍数の求め方", "math_gcd");
+  addUnit("m_8", "math", "elem", "割合と百分率", "小5", "もとにする量・比べる量・割合", "math_ratio");
+  addUnit("m_9", "math", "elem", "速さ・時間・道のり", "小6", "「み・は・じ」の関係と単位換算", "math_speed");
+  addUnit("m_10", "math", "elem", "比と比の値", "小6", "等しい比と比の利用", "math_prop");
+  addUnit("m_11", "math", "elem", "平面図形の面積", "小4-6", "三角形・台形・円の面積公式", "math_plane");
+  addUnit("m_12", "math", "elem", "立体の体積と表面積", "小5-6", "直方体・立方体・柱体の体積", "math_solid");
+
+  addUnit("m_13", "math", "junior", "正負の数の計算", "中1", "正負の四則混合・累乗・絶対値", "math_sign");
+  addUnit("m_14", "math", "junior", "文字と式・式の値", "中1", "文字の利用と代入", "math_literal");
+  addUnit("m_15", "math", "junior", "一次方程式", "中1", "移項と等式の性質", "math_linear_eq");
+  addUnit("m_16", "math", "junior", "連立方程式", "中2", "加減法と代入法の使い分け", "math_simul");
+  addUnit("m_17", "math", "junior", "一次関数とグラフ", "中2", "変化の割合・傾きと切片", "math_linear_fn");
+  addUnit("m_18", "math", "junior", "平行線と角・多角形", "中2", "対頂角・同位角・錯角・内角の和", "math_angle");
+  addUnit("m_19", "math", "junior", "図形の合同と証明", "中2", "三角形の合同条件の活用", "math_cong");
+  addUnit("m_20", "math", "junior", "式の展開と乗法公式", "中3", "(x+a)(x+b) や (a+b)² の展開", "math_expand");
+  addUnit("m_21", "math", "junior", "因数分解", "中3", "共通因数と公式の利用", "math_factor");
+  addUnit("m_22", "math", "junior", "平方根（√の計算）", "中3", "根号の性質・有理化・四則", "math_root");
+  addUnit("m_23", "math", "junior", "二次方程式", "中3", "因数分解・平方根・解の公式", "math_quad_eq");
+  addUnit("m_24", "math", "junior", "二次関数 y = ax²", "中3", "放物線と変化の割合", "math_quad_fn");
+  addUnit("m_25", "math", "junior", "図形の相似と線分比", "中3", "相似条件と面積比・体積比", "math_similar");
+  addUnit("m_26", "math", "junior", "円周角の定理", "中3", "中心角と円周角の関係", "math_inscribed");
+  addUnit("m_27", "math", "junior", "三平方の定理", "中3", "a²+b²=c² と空間図形への応用", "math_pythag");
+  addUnit("m_28", "math", "junior", "確率の基礎", "中2", "同様に確からしい事象と樹形図", "math_prob_base");
+
+  addUnit("m_29", "math", "high", "数と式・不等式", "高1", "実数・絶対値・一次不等式", "math_ineq");
+  addUnit("m_30", "math", "high", "二次関数とグラフ", "高1", "平方完成・軸と頂点・最大最小", "math_quad_high");
+  addUnit("m_31", "math", "high", "二次不等式", "高1", "判別式 D とグラフの共有点", "math_quad_ineq");
+  addUnit("m_32", "math", "high", "三角比（sin, cos, tan）", "高1", "直角三角形と相互関係", "math_trig");
+  addUnit("m_33", "math", "high", "正弦定理・余弦定理", "高1", "三角形の外接円・面積公式", "math_sin_cos_law");
+  addUnit("m_34", "math", "high", "集合と命題", "高1", "必要十分条件と対偶証明", "math_set_logic");
+  addUnit("m_35", "math", "high", "データの分析", "高1", "分散・標準偏差・四分位数・相関係数", "math_stats_high");
+  addUnit("m_36", "math", "high", "場合の数・順列と組合せ", "高1", "nPr と nCr の使い分け", "math_perm_comb");
+  addUnit("m_37", "math", "high", "確率の応用・条件付き確率", "高1", "独立試行・反復試行・期待値", "math_prob_adv");
+  addUnit("m_38", "math", "high", "整数の性質", "高1", "約数倍数・互除法・不定方程式", "math_integer");
+  addUnit("m_39", "math", "high", "図形と方程式", "高2", "点と直線の距離・円の方程式", "math_coord");
+  addUnit("m_40", "math", "high", "三角関数と加法定理", "高2", "弧度法・合成・加法定理", "math_trig_fn");
+  addUnit("m_41", "math", "high", "指数関数と対数関数", "高2", "指数法則と常用対数", "math_exp_log");
+  addUnit("m_42", "math", "high", "微分法（微積II）", "高2", "導関数・接線の方程式・増減表", "math_diff_high");
+  addUnit("m_43", "math", "high", "積分法（微積II）", "高2", "定積分と面積計算", "math_integral_high");
+  addUnit("m_44", "math", "high", "数列（等差・等比・Σ）", "高2", "一般項と和・漸化式", "math_seq");
+  addUnit("m_45", "math", "high", "平面ベクトル・空間ベクトル", "高2", "内積・成分表示・位置ベクトル", "math_vec");
+
+  addUnit("m_46", "math", "uni", "微分積分学：極限と微分", "大学", "ε-δ、テイラー展開・マクローリン展開", "math_uni_calc1");
+  addUnit("m_47", "math", "uni", "多変数解析：偏微分", "大学", "全微分・合成関数の偏微分・極値", "math_uni_partial");
+  addUnit("m_48", "math", "uni", "多変数解析：重積分", "大学", "二重積分と極座標変換", "math_uni_double");
+  addUnit("m_49", "math", "uni", "常微分方程式", "大学", "変数分離形と1階線形微分方程式", "math_uni_de");
+  addUnit("m_50", "math", "uni", "線形代数：行列の演算", "大学", "行列の積・転置・基本変形", "math_uni_mat");
+  addUnit("m_51", "math", "uni", "線形代数：行列式 det(A)", "大学", "2次・3次の行列式とサラスの公式", "math_uni_det");
+  addUnit("m_52", "math", "uni", "線形代数：逆行列と連立一次", "大学", "余因子行列とクラメルの公式", "math_uni_inv");
+  addUnit("m_53", "math", "uni", "線形代数：固有値・固有ベクトル", "大学", "特性方程式と対角化", "math_uni_eigen");
+
+  // 2. 国語（小〜高校 26単元）
+  addUnit("j_1", "japanese", "elem", "小学校の重要漢字", "小1-6", "漢字の正しい読み書きと送りがな", "jp_kanji");
+  addUnit("j_2", "japanese", "elem", "同音異義語・同訓異字", "小4-6", "文脈に合わせた正しい漢字の使い分け", "jp_homo");
+  addUnit("j_3", "japanese", "elem", "ことわざと慣用句", "小学生", "比喩的表現と教訓", "jp_proverb");
+  addUnit("j_4", "japanese", "elem", "四字熟語", "小学生", "故事や対義語・類義語を含む熟語", "jp_four");
+  addUnit("j_5", "japanese", "elem", "敬語の基本（尊敬・謙譲・丁寧）", "小学生", "立場に応じた正しい言葉づかい", "jp_keigo");
+  addUnit("j_6", "japanese", "elem", "物語文読解『ごんぎつね』", "小学生", "登場人物の心情と行動の変化", "jp_pass_gon");
+
+  addUnit("j_7", "japanese", "junior", "品詞の分類（自立語・付属語）", "中1", "名詞・動詞・形容詞などの見分け方", "jp_part_speech");
+  addUnit("j_8", "japanese", "junior", "動詞の活用形と種類", "中1-2", "五段・上一段・下一段・変格活用", "jp_verb_conj");
+  addUnit("j_9", "japanese", "junior", "形容詞・形容動詞の活用", "中2", "ウ・イ・イ・イ・ケレ・〇 などの活用", "jp_adj_conj");
+  addUnit("j_10", "japanese", "junior", "助詞の用法と識別", "中2-3", "格助詞・副助詞・接続助詞・終助詞", "jp_particle");
+  addUnit("j_11", "japanese", "junior", "助動詞の意味と識別", "中3", "受身・可能・使役・否定・過去", "jp_aux_verb");
+  addUnit("j_12", "japanese", "junior", "故事成語（矛盾・推敲など）", "中1-3", "中国の故事に由来する言葉", "jp_idiom_cn");
+  addUnit("j_13", "japanese", "junior", "歴史的仮名遣いと古文入門", "中1-2", "てふてふ→ちょうちょう 等の変換", "jp_classical_base");
+  addUnit("j_14", "japanese", "junior", "係り結びの法則", "中2-3", "ぞ・なむ・や・か・こそ の活用語尾", "jp_kakari");
+  addUnit("j_15", "japanese", "junior", "漢文の訓読（返り点と書き下し）", "中2-3", "レ点・一二点・上下点", "jp_kanbun_base");
+  addUnit("j_16", "japanese", "junior", "論説文読解『言葉とAIの未来』", "中学生", "要旨の把握と段落の論理関係", "jp_pass_ai");
+
+  addUnit("j_17", "japanese", "high", "現代文重要評論用語", "高1-3", "パラダイム、止揚、捨象、アポリア", "jp_terms");
+  addUnit("j_18", "japanese", "high", "現代文哲学・文化論キーワード", "高1-3", "主体と客体、二元論、アイデンティティ", "jp_philosophy");
+  addUnit("j_19", "japanese", "high", "古文重要単語300", "高1-3", "あはれ、をかし、いみじ、ゆかし", "jp_kobun_word");
+  addUnit("j_20", "japanese", "high", "古文助動詞：過去・完了", "高1-2", "き・けり・つ・ぬ・たり・り", "jp_kobun_aux1");
+  addUnit("j_21", "japanese", "high", "古文助動詞：受身・使役・推量", "高1-2", "る・らる・す・さす・む・べし", "jp_kobun_aux2");
+  addUnit("j_22", "japanese", "high", "古文の敬語法（本動詞・補助動詞）", "高2-3", "給ふ、侍り、申す の識別", "jp_kobun_keigo");
+  addUnit("j_23", "japanese", "high", "漢文句法：否定・二重否定", "高1-2", "不、非、無 の訓読と意味", "jp_kanbun_neg");
+  addUnit("j_24", "japanese", "high", "漢文句法：使役・受身", "高1-2", "使・令（しむ）、見・被（らる）", "jp_kanbun_caus");
+  addUnit("j_25", "japanese", "high", "漢文句法：反語・疑問", "高2-3", "安・何・豈（なんぞ…ん）", "jp_kanbun_rhet");
+  addUnit("j_26", "japanese", "high", "評論文長文読解（近代合理主義批判）", "高校生", "科学技術と人間の疎外", "jp_pass_modern");
+
+  // 3. 英語（小〜高校 25単元）
+  addUnit("e_1", "english", "elem", "曜日・月・季節・天気の英語", "初級", "カレンダーと身の回りの名詞", "en_vocab_cal");
+  addUnit("e_2", "english", "elem", "数・時間・身の回りの持ち物", "初級", "数詞と日常生活の単語", "en_vocab_daily");
+  addUnit("e_3", "english", "elem", "挨拶と日常のショートフレーズ", "初級", "Hello, How are you? など", "en_phrase_elem");
+  addUnit("e_4", "english", "elem", "疑問詞（What, Where, Who, When）", "初級", "疑問文の基本パターン", "en_wh_elem");
+  addUnit("e_5", "english", "elem", "ストーリー読解『京都への修学旅行』", "初級", "過去形の短い英文ストーリー", "en_pass_kyoto");
+
+  addUnit("e_6", "english", "junior", "be動詞と一般動詞（現在形）", "中1", "主語と動詞の一致、三単現のs", "en_verb_present");
+  addUnit("e_7", "english", "junior", "過去形・過去進行形", "中1-2", "規則動詞と was/were + -ing", "en_verb_past");
+  addUnit("e_8", "english", "junior", "未来の表現（will / be going to）", "中2", "予定・意志・推量の表現", "en_future");
+  addUnit("e_9", "english", "junior", "助動詞（can, must, should, may）", "中2", "助動詞の意味と否定文・疑問文", "en_aux");
+  addUnit("e_10", "english", "junior", "不規則動詞の活用変化", "中2-3", "write-wrote-written 等の暗記", "en_irreg_verb");
+  addUnit("e_11", "english", "junior", "不定詞の3用法（名詞・副詞・形容詞）", "中2", "to + 動詞の原形", "en_infinitive");
+  addUnit("e_12", "english", "junior", "動名詞（-ing）と前置詞", "中2", "enjoy -ing や look forward to -ing", "en_gerund");
+  addUnit("e_13", "english", "junior", "比較級・最上級（-er, more, as...as）", "中2", "原級・比較級・最上級の構文", "en_comp");
+  addUnit("e_14", "english", "junior", "受動態（受け身：be + 過去分詞）", "中3", "by 〜 を伴う能動態からの書き換え", "en_passive");
+  addUnit("e_15", "english", "junior", "現在完了形（完了・継続・経験）", "中3", "have + 過去分詞 と since/for", "en_perf");
+  addUnit("e_16", "english", "junior", "関係代名詞（who, which, that）", "中3", "主格・目的格の関係代名詞", "en_rel_pron");
+  addUnit("e_17", "english", "junior", "対話文読解『公園のボランティア』", "中学生", "コミュニティ活動に関する対話文", "en_pass_park");
+
+  addUnit("e_18", "english", "high", "高校必須イディオム・句動詞", "高1-3", "take advantage of, depend on など", "en_idiom_high");
+  addUnit("e_19", "english", "high", "助動詞の完了形（should have p.p.等）", "高1-2", "過去の推量・後悔を表す助動詞", "en_aux_have");
+  addUnit("e_20", "english", "high", "分詞構文（時・理由・付帯状況）", "高1-2", "接続詞を用いずに分詞でつなぐ", "en_participle");
+  addUnit("e_21", "english", "high", "仮定法過去（If S were..., S would...）", "高1-2", "現在の事実と異なる願望・反実仮想", "en_subjunctive1");
+  addUnit("e_22", "english", "high", "仮定法過去完了（If S had been...）", "高2-3", "過去の事実と異なる仮定", "en_subjunctive2");
+  addUnit("e_23", "english", "high", "関係副詞と複合関係詞（where, whatever）", "高2-3", "前置詞+関係代名詞からの書き換え", "en_rel_adv");
+  addUnit("e_24", "english", "high", "強調構文（It is ... that）と倒置", "高2-3", "文頭の否定語による倒置構文", "en_emph_inv");
+  addUnit("e_25", "english", "high", "長文読解『スマートグリッドとエネルギー』", "高校生", "学術的テーマに関する読解", "en_pass_grid");
+
+  // 4. 理科（小〜高校 44単元）
+  addUnit("s_1", "science", "elem", "植物の発芽と成長の条件", "小5", "水・空気・適当な温度・日光", "sci_germ");
+  addUnit("s_2", "science", "elem", "花のつくりと受粉・実", "小5", "おしべ・めしべ・花粉の働き", "sci_flower");
+  addUnit("s_3", "science", "elem", "光合成と植物の呼吸", "小6", "二酸化炭素・水・デンプン・酸素", "sci_photo_elem");
+  addUnit("s_4", "science", "elem", "こん虫の育ち方とからだ", "小3", "頭・胸・腹と完全変態・不完全変態", "sci_insect");
+  addUnit("s_5", "science", "elem", "人の呼吸と消化の仕組み", "小6", "肺・胃・小腸の基本的な働き", "sci_body_elem");
+  addUnit("s_6", "science", "elem", "水溶液の性質とリトマス紙", "小6", "酸性・中性・アルカリ性の見分け", "sci_sol_elem");
+  addUnit("s_7", "science", "elem", "ものの重さと体積・浮力", "小3-5", "同じ体積での重さ比べ", "sci_weight_elem");
+  addUnit("s_8", "science", "elem", "てこの規則性（支点・力点・作用点）", "小6", "うでの長さ×おもさ のつり合い", "sci_lever");
+  addUnit("s_9", "science", "elem", "電流と豆電球・電磁石", "小3-5", "直列・並列つなぎと磁力", "sci_circuit_elem");
+  addUnit("s_10", "science", "elem", "天気の変化と雲の動き", "小5", "気温・湿度と雨の降る仕組み", "sci_weather_elem");
+  addUnit("s_11", "science", "elem", "月と星の動き（満ち欠け）", "小4-6", "日周運動と太陽・月の位置関係", "sci_moon_elem");
+
+  addUnit("s_12", "science", "junior", "光の反射・屈折と凸レンズ", "中1", "実像・虚像と焦点距離", "sci_optics");
+  addUnit("s_13", "science", "junior", "音の性質（振幅と振動数）", "中1", "音の高さと大きさ・音速", "sci_sound");
+  addUnit("s_14", "science", "junior", "力と圧力・水圧と浮力", "中1", "N/m² (Pa) とアルキメデスの原理", "sci_pressure");
+  addUnit("s_15", "science", "junior", "電流・電圧とオームの法則", "中2", "V = RI と直列・並列抵抗", "sci_ohm");
+  addUnit("s_16", "science", "junior", "電力と電力量・発熱量", "中2", "W = V × I、J = W × s", "sci_power");
+  addUnit("s_17", "science", "junior", "物質のすがたと状態変化", "中1", "融点・沸点・蒸留・密度", "sci_state");
+  addUnit("s_18", "science", "junior", "化学変化（酸化と還元）", "中2", "酸素との化合・金属の還元", "sci_redox_jun");
+  addUnit("s_19", "science", "junior", "原子・分子と化学反応式", "中2", "元素記号と質量の保存", "sci_formula");
+  addUnit("s_20", "science", "junior", "水溶液とイオン・電離式", "中3", "陽イオン・陰イオンの成り立ち", "sci_ion");
+  addUnit("s_21", "science", "junior", "酸・アルカリと中和反応", "中3", "H+ と OH- の結合、塩の沈殿", "sci_neutral");
+  addUnit("s_22", "science", "junior", "細胞のつくりと顕微鏡", "中2", "核・葉緑体・細胞膜・細胞壁", "sci_cell");
+  addUnit("s_23", "science", "junior", "消化酵素と血液循環", "中2", "アミラーゼ・ペプシン・心臓の部屋", "sci_digestion");
+  addUnit("s_24", "science", "junior", "感覚器官と神経・反射", "中2", "感覚神経・運動神経・反射", "sci_nerve");
+  addUnit("s_25", "science", "junior", "生殖と遺伝（メンデルの法則）", "中3", "減数分裂と優性の法則・分離の法則", "sci_genetics");
+  addUnit("s_26", "science", "junior", "地層と化石（示準・示相化石）", "中1", "堆積岩と年代判定", "sci_strata");
+  addUnit("s_27", "science", "junior", "地震の波（P波・S波と震源）", "中1", "初期微動継続時間と震度・マグニチュード", "sci_quake");
+  addUnit("s_28", "science", "junior", "気圧・前線と日本の天気", "中2", "寒冷前線・温暖前線・気団", "sci_front");
+  addUnit("s_29", "science", "junior", "地球の自転・公転と天体", "中3", "天球・日周運動・年周運動", "sci_astro");
+
+  addUnit("s_30", "science", "high", "物理基礎：等加速度直線運動", "高1", "v = v0 + at、x = v0t + 1/2at²", "sci_phys_motion");
+  addUnit("s_31", "science", "high", "物理基礎：運動方程式 F = ma", "高1", "ニュートンの運動の3法則", "sci_phys_newton");
+  addUnit("s_32", "science", "high", "物理基礎：力学的エネルギー保存", "高1", "運動エネルギーと位置エネルギー", "sci_phys_energy");
+  addUnit("s_33", "science", "high", "物理基礎：波の干渉と音波", "高1", "v = fλ とドップラー効果の基礎", "sci_phys_wave");
+  addUnit("s_34", "science", "high", "化学基礎：原子の構造と周期表", "高1", "陽子・中性子・電子配置・同位体", "sci_chem_atom");
+  addUnit("s_35", "science", "high", "化学基礎：化学結合の種類", "高1", "イオン結合・共有結合・金属結合", "sci_chem_bond");
+  addUnit("s_36", "science", "high", "化学基礎：物質量とmol計算", "高1", "アボガドロ定数と気体の体積22.4L", "sci_chem_mol");
+  addUnit("s_37", "science", "high", "化学基礎：酸・塩基と中和滴定", "高1", "pH、中和の量的関係（acV = bc'V'）", "sci_chem_titr");
+  addUnit("s_38", "science", "high", "化学基礎：酸化数と酸化還元反応", "高1", "酸化数のルールと半反応式", "sci_chem_redox");
+  addUnit("s_39", "science", "high", "生物基礎：DNA構造と塩基対", "高1", "ヌクレオチド、A-T・G-C結合", "sci_bio_dna");
+  addUnit("s_40", "science", "high", "生物基礎：転写・翻訳とセントラルドグマ", "高1", "mRNA、コドン、タンパク質合成", "sci_bio_dogma");
+  addUnit("s_41", "science", "high", "生物基礎：体内環境とホルモン", "高1", "視床下部・脳下垂体・インスリン", "sci_bio_hormone");
+  addUnit("s_42", "science", "high", "生物基礎：生体防御と免疫反応", "高1", "自然免疫と獲得免疫（抗原抗体）", "sci_bio_immune");
+  addUnit("s_43", "science", "high", "地学基礎：地球の構造とプレート", "高1", "地殻・マントル・プレート境界", "sci_earth_plate");
+  addUnit("s_44", "science", "high", "地学基礎：宇宙の膨張と恒星の進化", "高1", "ハッブルの法則と主系列星・超新星", "sci_earth_space");
+
+  // 5. 社会（小〜高校 40単元）
+  addUnit("so_1", "social", "elem", "47都道府県と県庁所在地", "小4", "位置・名称・特産物", "soc_pref");
+  addUnit("so_2", "social", "elem", "日本の地形・山脈と河川", "小5", "日本アルプス、信濃川、平野", "soc_geo_jp_elem");
+  addUnit("so_3", "social", "elem", "日本の農業（米・野菜・果物）", "小5", "促成栽培・近郊農業・施設園芸", "soc_agri");
+  addUnit("so_4", "social", "elem", "日本の水産業と工業地帯", "小5", "太平洋ベルト、中京・京浜工業地帯", "soc_ind_elem");
+  addUnit("so_5", "social", "elem", "原始・古代の暮らし（縄文〜古墳）", "小6", "土器、たて穴住居、埴輪", "soc_ancient_elem");
+  addUnit("so_6", "social", "elem", "聖徳太子と奈良の都", "小6", "冠位十二階・十七条憲法・大仏", "soc_asuka_elem");
+  addUnit("so_7", "social", "elem", "戦国武将と江戸幕府の始まり", "小6", "信長・秀吉・家康と関ヶ原", "soc_edo_elem");
+  addUnit("so_8", "social", "elem", "明治維新と近代化の歩み", "小6", "廃藩置県・鉄道開通・富国強兵", "soc_meiji_elem");
+  addUnit("so_9", "social", "elem", "憲法三原則と三権の仕事", "小6", "国民主権・平和主義・人権尊重", "soc_civ_elem");
+
+  addUnit("so_10", "social", "junior", "世界の州と海洋・気候帯", "中1", "温帯・熱帯・乾燥帯・寒帯の暮らし", "soc_world_geo");
+  addUnit("so_11", "social", "junior", "アジア・欧州・アメリカの特色", "中1", "多民族国家、EU、産業革命", "soc_world_region");
+  addUnit("so_12", "social", "junior", "日本の自然環境と気候区分", "中2", "日本海側・太平洋側・瀬戸内", "soc_jp_climate");
+  addUnit("so_13", "social", "junior", "日本の諸地域（地方別の産業）", "中2", "東北・関東・近畿・九州の特色", "soc_jp_region");
+  addUnit("so_14", "social", "junior", "古代文明と律令国家の成立", "中1", "大化の改新、大宝律令、平城京", "soc_ritsuryo");
+  addUnit("so_15", "social", "junior", "平安貴族の文化と武士の誕生", "中1", "国風文化、摂関政治、源平の合戦", "soc_heian");
+  addUnit("so_16", "social", "junior", "鎌倉幕府と御恩・奉公", "中1-2", "源頼朝、北条氏の執権政治、元寇", "soc_kamakura");
+  addUnit("so_17", "social", "junior", "室町幕府と東山文化", "中2", "足利義満、勘合貿易、銀閣寺", "soc_muromachi");
+  addUnit("so_18", "social", "junior", "安土桃山と江戸の幕藩体制", "中2", "太閤検地・刀狩、参勤交代・鎖国", "soc_edo_pol");
+  addUnit("so_19", "social", "junior", "江戸の三大改革と庶民文化", "中2", "享保・寛政・天保の改革、元禄文化", "soc_edo_reform");
+  addUnit("so_20", "social", "junior", "開国と明治維新の三大改革", "中2", "学制・兵制・地租改正", "soc_meiji_rest");
+  addUnit("so_21", "social", "junior", "自由民権運動と帝国憲法", "中2-3", "板垣退助、伊藤博文、帝国議会", "soc_minken");
+  addUnit("so_22", "social", "junior", "日清・日露戦争と条約改正", "中3", "下関条約・ポーツマス条約、領事裁判権", "soc_wars");
+  addUnit("so_23", "social", "junior", "第一次世界大戦と大正デモクラシー", "中3", "普通選挙法、治安維持法、政党内閣", "soc_taisho");
+  addUnit("so_24", "social", "junior", "世界恐慌と第二次世界大戦", "中3", "ブロック経済、ファシズム、日中戦争", "soc_ww2");
+  addUnit("so_25", "social", "junior", "戦後の民主化と現代の日本", "中3", "日本国憲法公布、農地改革、高度成長", "soc_postwar");
+  addUnit("so_26", "social", "junior", "日本国憲法と基本的人権", "中3", "自由権・平等権・社会権・参政権", "soc_rights");
+  addUnit("so_27", "social", "junior", "現代の民主政治（三権分立）", "中3", "国会（立法）・内閣（行政）・裁判所（司法）", "soc_three_powers");
+  addUnit("so_28", "social", "junior", "地方自治と住民参加", "中3", "首長と議会、直接請求権、住民投票", "soc_local_gov");
+  addUnit("so_29", "social", "junior", "市場経済と均衡価格の決定", "中3", "需要・供給曲線のシフトと価格決定", "soc_market_price");
+
+  addUnit("so_30", "social", "high", "歴史総合：近代化と国民国家", "高1", "市民革命、産業革命、立憲体制", "soc_modern_state");
+  addUnit("so_31", "social", "high", "歴史総合：大戦と冷戦の国際秩序", "高1", "ヴェルサイユ体制、ヤルタ会談、冷戦", "soc_cold_war");
+  addUnit("so_32", "social", "high", "地理総合：地図投影法とGIS", "高1", "メルカトル図法・正距方位図法", "soc_map_proj");
+  addUnit("so_33", "social", "high", "地理総合：地球環境と資源問題", "高1", "地球温暖化、化石燃料、食料問題", "soc_global_env");
+  addUnit("so_34", "social", "high", "公共：立憲主義と法の支配", "高1-2", "夜警国家から福祉国家、基本法", "soc_const_law");
+  addUnit("so_35", "social", "high", "公共：内閣不信任と議院内閣制", "高1-2", "衆議院の優越、解散、違憲審査権", "soc_parl_sys");
+  addUnit("so_36", "social", "high", "公共：市場の失敗と政府の役割", "高1-2", "独占、公共財、外部不経済", "soc_market_fail");
+  addUnit("so_37", "social", "high", "公共：GDPと経済成長率", "高2-3", "国内総生産、三面等価の原則", "soc_gdp_econ");
+  addUnit("so_38", "social", "high", "公共：物価と金融政策（日銀）", "高2-3", "インフレ・デフレ、金利操作・量的緩和", "soc_monetary");
+  addUnit("so_39", "social", "high", "公共：為替レートと国際金融", "高2-3", "円高・円安の影響、変動為替相場制", "soc_fx_rates");
+  addUnit("so_40", "social", "high", "公共：国際連合と多国間協調", "高2-3", "安全保障理事会、拒否権、PKO", "soc_un_global");
+
+  // --- 高効率タプル辞書（文系・理科・社会の超圧縮データ） ---
+  // 形式: [問題文, 選択肢カンマ区切り, 正解インデックス(1-indexed), 解説]
+  const KNOWLEDGE_TUPLES = {
+    // 算数はジェネレーター対応
+    jp_kanji: [
+      ["「海辺を【散歩】する」の読みは？", "さんぽ,さんほ,さんふ,さぽ", 1, "「散歩」は「さんぽ」です。"],
+      ["「【丁寧】にあいさつする」の読みは？", "ていねい,でいねい,ちょうねい,ていに", 1, "「丁寧」は「ていねい」です。"],
+      ["「春風が【心地】よい」の読みは？", "ここち,しんち,こころち,ここじ", 1, "「心地」は熟字訓で「ここち」です。"],
+      ["「計画を【実行】する」の読みは？", "じっこう,じつぎょう,じっこ,じつこう", 1, "「実行」は「じっこう」です。"]
+    ],
+    jp_homo: [
+      ["「あとから悔やむこと」を表す同音異義語は？", "後悔,公開,航海,更改", 1, "自分の行いを悔やむのは「後悔」です。"],
+      ["「新聞の記事を書く人」を表す同音異義語は？", "記者,汽車,貴社,帰社", 1, "新聞・雑誌の記事を書く人は「記者」です。"],
+      ["「広く世間に知らせること」を表す同音異義語は？", "公表,鉱山,高評,好況", 1, "世間に知らせるのは「公表」です。"]
+    ],
+    jp_proverb: [
+      ["「一つの行動で二つの利益を得ること」を表すことわざは？", "一石二鳥,馬の耳に念仏,猿も木から落ちる,井の中の蛙", 1, "一石二鳥は1つの石で2羽の鳥を得る意味です。"],
+      ["「油断して失敗することへの戒め」を表すことわざは？", "油断大敵,備えあれば憂いなし,後の祭り,焼け石に水", 1, "気を緩めると大きな災いになるという戒めです。"],
+      ["「どれほど達人でも失敗することがある」のたとえは？", "猿も木から落ちる,犬も歩けば棒に当たる,急がば回れ,石橋を叩いて渡る", 1, "その道の専門家でもミスをすることがある意味です。"]
+    ],
+    jp_four: [
+      ["「一生に一度だけの貴重な出会い」を表す四字熟語は？", "一期一会,以心伝心,温故知新,異口同音", 1, "茶道の心得に由来する言葉です。"],
+      ["「昔のことを学び新しい知識や見解を得ること」は？", "温故知新,切磋琢磨,臥薪嘗胆,臨機応変", 1, "「故きを温ねて新しきを知る」に由来します。"]
+    ],
+    jp_keigo: [
+      ["「相手の動作を高めて敬意を示す敬語」はどれ？", "尊敬語,謙譲語,丁寧語,美化語", 1, "相手を立てるのが尊敬語、自分をへりくだるのが謙譲語です。"],
+      ["「先生が本を（読む）」を尊敬語にすると？", "お読みになる,拝読する,読みます,読まれる", 1, "「お〜になる」は代表的な尊敬語の形式です。"]
+    ],
+    jp_part_speech: [
+      ["「花が美しく咲く」の「美しく」の品詞は？", "形容詞,形容動詞,副詞,動詞", 1, "言い切りが「美しい」（語尾が「い」）となる形容詞です。"],
+      ["それだけで意味がわかり文の主語になれる品詞は？", "名詞,動詞,助詞,接続詞", 1, "名詞（体言）は主語になる自立語です。"]
+    ],
+    jp_verb_conj: [
+      ["「書く」の活用の種類はどれ？", "五段活用,上一段活用,下一段活用,カ行変格活用", 1, "書か(a)・書い(i)・書く(u)・書け(e)・書こう(o)の5段です。"],
+      ["「起きる」の活用の種類はどれ？", "上一段活用,下一段活用,五段活用,サ行変格活用", 1, "語幹に「い段」の母音を持つ上一段活用です。"]
+    ],
+    jp_particle: [
+      ["「彼【に】本を渡す」の「に」の助詞の種類は？", "格助詞,副助詞,接続助詞,終助詞", 1, "相手・場所・対象を示す格助詞です。"],
+      ["文と文をつなぎ前後の関係を示す助詞は？", "接続助詞,格助詞,終助詞,副助詞", 1, "「〜ので」「〜けれども」などの接続助詞です。"]
+    ],
+    jp_classical_base: [
+      ["歴史的仮名遣い「てふてふ」の現代仮名遣いは？", "ちょうちょう,てふてふ,とうとう,ちゅうちゅう", 1, "「えふ」は「よう」に長音化するため「ちょうちょう」です。"],
+      ["歴史的仮名遣い「やうやう」の現代仮名遣いは？", "ようよう,やうやう,ゆゆ,よよ", 1, "「あう」は「おう」になるため「ようよう」です。"]
+    ],
+    jp_terms: [
+      ["対立する主張を統合し高次の段階へ発展させる弁証法の概念は？", "止揚（アウフヘーベン）,捨象,敷衍,パラダイム", 1, "対立を克服して高次元でまとめることです。"],
+      ["特定の要素だけを取り出し、他を削ぎ落として切り捨てることは？", "捨象,止揚,演繹,帰納", 1, "抽象化の裏面にある切り捨てのことです。"]
+    ],
+    en_vocab_cal: [
+      ["「水曜日」を表す英単語はどれ？", "Wednesday,Tuesday,Thursday,Friday", 1, "Wednesday が水曜日です。"],
+      ["「8月」を表す英単語はどれ？", "August,April,Autumn,Autumn", 1, "August が8月、April は4月です。"]
+    ],
+    en_phrase_elem: [
+      ["「お元気ですか？」と尋ねる定番の挨拶は？", "How are you?,Who are you?,Where are you?,What are you?", 1, "How are you? が調子を尋ねる挨拶です。"],
+      ["「はじめまして」に相当する挨拶は？", "Nice to meet you.,Good night.,See you later.,Thank you.", 1, "初対面の挨拶は Nice to meet you. です。"]
+    ],
+    en_verb_past: [
+      ["動詞「go」の過去形はどれ？", "went,gone,goed,goes", 1, "go の過去形は不規則変化の went です。"],
+      ["動詞「play」の過去形はどれ？", "played,playd,playing,plays", 1, "規則動詞は語尾に -ed をつけます。"]
+    ],
+    en_aux: [
+      ["「〜しなければならない」を表す助動詞は？", "must,can,may,shall", 1, "義務・強制を表すのは must (have to) です。"],
+      ["「〜してもよい（許可）」を表す助動詞は？", "may,must,should,will", 1, "許可を求める・与えるのは may です。"]
+    ],
+    en_infinitive: [
+      ["不定詞の基本の形はどれ？", "to + 動詞の原形,to + 過去分詞,to + -ing,for + 動詞", 1, "不定詞は to + 原形 で名詞・副詞・形容詞の働きをします。"],
+      ["「I want to study English.」の不定詞の用法は？", "名詞的用法,副詞的用法,形容詞的用法,受動態", 1, "want の目的語「勉強すること」なので名詞的用法です。"]
+    ],
+    en_passive: [
+      ["受動態（受け身）の基本公式はどれ？", "be動詞 + 過去分詞,have + 過去分詞,be動詞 + -ing,do + 原形", 1, "「〜される」は be動詞 + 過去分詞 で表します。"],
+      ["「This book was written by Ken.」の文の主語は？", "This book,Ken,written,was", 1, "受動態では動作を受ける「This book」が主語です。"]
+    ],
+    en_perf: [
+      ["現在完了形の基本公式はどれ？", "have/has + 過去分詞,had + 過去分詞,be + 過去分詞,have + -ing", 1, "現在完了は have/has + 過去分詞 です。"],
+      ["「〜へ行ったことがある（経験）」を表す熟語は？", "have been to,have gone to,have visited to,have arrived", 1, "経験は have been to 〜 を用います。"]
+    ],
+    en_subjunctive1: [
+      ["「もし時間があれば手伝えるのに」を表す仮定法過去の動詞形は？", "had,have,will have,had had", 1, "現在の事実と反する仮定は過去形（had）を用います。"],
+      ["「I wish I (    ) a bird.」に入る語は？", "were,am,will be,have been", 1, "仮定法過去の be動詞は一般に were を用います。"]
+    ],
+    sci_photo_elem: [
+      ["植物が光を受けて養分と酸素をつくる働きは？", "光合成,呼吸,蒸散,発芽", 1, "葉緑体で二酸化炭素と水からデンプンをつくります。"],
+      ["光合成が行われる植物の細胞小器官は？", "葉緑体,核,細胞壁,ミトコンドリア", 1, "緑色の色素クロロフィルを含む葉緑体です。"]
+    ],
+    sci_sol_elem: [
+      ["青色リトマス紙を赤色に変える水溶液の性質は？", "酸性,アルカリ性,中性,油性", 1, "青→赤は酸性（塩酸や酢など）です。"],
+      ["赤色リトマス紙を青色に変える水溶液の性質は？", "アルカリ性,酸性,中性,食塩水", 1, "赤→青はアルカリ性（石けん水や重曹水）です。"]
+    ],
+    sci_lever: [
+      ["てこがつり合うとき「支点からの距離 × おもさ」は左右で？", "等しい,左が大きい,右が大きい,関係ない", 1, "うでの長さとおもさの積が等しいときにつり合います。"],
+      ["てこで力を加える位置を何という？", "力点,支点,作用点,中心", 1, "支点・力点・作用点の3点があります。"]
+    ],
+    sci_ohm: [
+      ["オームの法則の電圧 V, 電流 I, 抵抗 R の関係式は？", "V = RI,I = VR,R = VI,P = VI", 1, "電圧＝電流×抵抗（V=RI）です。"],
+      ["抵抗 10Ω に 5V の電圧をかけたときの電流は？", "0.5A,2A,50A,5A", 1, "I = V/R = 5/10 = 0.5A です。"]
+    ],
+    sci_ion: [
+      ["塩化ナトリウム（食塩）が水に溶けて電離したときの式は？", "NaCl → Na+ + Cl-,NaCl → Na + Cl,NaCl → Na- + Cl+,NaCl → HCl + NaOH", 1, "ナトリウムイオン(Na+)と塩化物イオン(Cl-)に分かれます。"],
+      ["酸性の水溶液に共通して含まれるイオンは？", "水素イオン（H+）,水酸化物イオン（OH-）,ナトリウムイオン,塩化物イオン", 1, "酸性の正体は水素イオン(H+)です。"]
+    ],
+    sci_phys_motion: [
+      ["初速度 v0, 加速度 a の等加速度直線運動の速度 v の公式は？", "v = v0 + at,v = v0t + 1/2at²,v² - v0² = 2ax,x = vt", 1, "速度は時間の1次関数 v = v0 + at です。"],
+      ["静止から加速度 2 m/s² で3秒後の速度は？", "6 m/s,3 m/s,9 m/s,12 m/s", 1, "v = 0 + 2×3 = 6 m/s です。"]
+    ],
+    sci_bio_dna: [
+      ["DNAの二重らせんでアデニン(A)と結合する塩基は？", "チミン(T),グアニン(G),シトシン(C),ウラシル(U)", 1, "DNAの塩基対は A-T、G-C です。"],
+      ["DNAからmRNAに情報を写し取る過程を何という？", "転写,翻訳,複製,変異", 1, "転写を経てリボソームで翻訳（タンパク質合成）されます。"]
+    ],
+    soc_pref: [
+      ["日本で最も面積の大きい都道府県はどこ？", "北海道,岩手県,福島県,長野県", 1, "1位は北海道、2位は岩手県です。"],
+      ["日本で最も人口が多い都道府県はどこ？", "東京都,神奈川県,大阪府,愛知県", 1, "首都である東京都が第1位です。"]
+    ],
+    soc_civ_elem: [
+      ["日本国憲法の三大原則に含まれないものは？", "地方分権,国民主権,基本的人権の尊重,平和主義", 1, "三大原則は国民主権・人権尊重・平和主義です。"],
+      ["国の政治のあり方を最終的に決める権利が国民にある原則は？", "国民主権,平和主義,三権分立,法の下の平等", 1, "前文に明記された国民主権です。"]
+    ],
+    soc_three_powers: [
+      ["三権分立で法律を制定する立法権を持つ機関は？", "国会,内閣,裁判所,日本銀行", 1, "唯一の立法機関は国会です。"],
+      ["法律に基づいて政治を行う行政権を持つ機関は？", "内閣,国会,裁判所,検察庁", 1, "行政権の最高機関は内閣です。"],
+      ["法に基づいて紛争を裁く司法権を持つ機関は？", "裁判所,国会,内閣,警察署", 1, "司法権は裁判所が担います。"]
+    ],
+    soc_market_price: [
+      ["需要曲線と供給曲線の交点で決まる価格を何という？", "均衡価格,公定価格,独占価格,時価", 1, "需要と供給が一致する価格です。"],
+      ["商品の人気が出て需要が増加したとき、価格はどうなる？", "上昇する,下落する,変わらない,半分になる", 1, "買いたい人が増えると価格は上がります。"]
+    ]
+  };
+
+  // --- メインメニューの描画 ---
+  function buildMainMenus() {
+    const categories = {
+      math: { elem: "mathGrid_elem", junior: "mathGrid_junior", high: "mathGrid_high", uni: "mathGrid_uni" },
+      japanese: { elem: "jpGrid_elem", junior: "jpGrid_junior", high: "jpGrid_high" },
+      english: { elem: "enGrid_elem", junior: "enGrid_junior", high: "enGrid_high" },
+      science: { elem: "sciGrid_elem", junior: "sciGrid_junior", high: "sciGrid_high" },
+      social: { elem: "socGrid_elem", junior: "socGrid_junior", high: "socGrid_high" }
+    };
+
+    UNIT_CATALOG.forEach(u => {
+      const targetMap = categories[u.subj];
+      if (!targetMap) return;
+      const gridId = targetMap[u.group];
+      if (!gridId) return;
+      const grid = document.getElementById(gridId);
+      if (!grid) return;
+
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "menuBtn";
+      btn.onclick = () => window.openUnitSubMenu(u.id);
+      btn.innerHTML = `
+        <span class="btnLabel">${esc(u.name)}</span>
+        <span class="btnBadge">${esc(u.badge)}</span>
+      `;
+      grid.appendChild(btn);
+    });
+
+    updateSchoolCounts();
+  }
+
+  // --- 単元サブメニュー画面の表示 ---
+  window.openUnitSubMenu = function(unitId) {
+    const unit = UNIT_CATALOG.find(u => u.id === unitId);
+    if (!unit) return;
+    currentUnit = unit;
+    sessionId++;
+    setQuiz(false);
+
+    document.querySelectorAll(".menuPane").forEach(p => p.classList.remove("active"));
+    document.getElementById("subjectNav").style.display = "none";
+    document.getElementById("globalTools").style.display = "none";
+    ["quizCard", "passageBox", "workspace", "answerRow", "buttons", "analysis", "notes"].forEach(id => show(id, "none"));
+
+    const subMenu = document.getElementById("unitSubMenu");
+    subMenu.style.display = "block";
+    document.getElementById("subUnitTitle").textContent = unit.name + " (" + unit.badge + ")";
+    document.getElementById("subUnitDesc").textContent = unit.desc;
+
+    const listEl = document.getElementById("subStepList");
+    const steps = unit.steps;
+    const stepKeys = ['step1', 'step2', 'step3', 'random', 'test'];
+
+    listEl.innerHTML = stepKeys.map((k, idx) => {
+      const st = steps[k];
+      if (!st) return "";
+      const isFinal = (k === 'test');
+      const isRandom = (k === 'random');
+      const iconText = isFinal ? "🏆" : (isRandom ? "🎲" : (idx + 1));
+      const badgeText = isFinal ? "実力判定" : (isRandom ? "シャッフル" : "学習");
+      return `
+        <div class="subStepCard ${isFinal ? 'stepFinal' : ''}" onclick="window.startUnitStep('${unit.id}', '${k}')">
+          <div class="stepLeft">
+            <div class="subStepIcon">${iconText}</div>
+            <div class="subStepInfo">
+              <h4>${esc(st.name)}</h4>
+              <p>${esc(st.desc)}</p>
+            </div>
+          </div>
+          <span class="subStepBadge">${badgeText}</span>
+        </div>
+      `;
+    }).join("");
+
+    updateTopBack();
+  };
+
+  // --- 科目別ランダム総合実力テスト（全単元からシャッフル10問出題） ---
+  window.startSubjectRandomTest = function(subjKey) {
+    const targetSubj = subjKey || currentSubject;
+    const units = UNIT_CATALOG.filter(u => u.subj === targetSubj);
+    if (!units || units.length === 0) return;
+
+    // シャッフルして10問分のテストキューを生成
+    const shuffledUnits = shuffleArray(units);
+    const selected = shuffledUnits.slice(0, Math.min(10, shuffledUnits.length));
+    // 足りない場合は重複を許容して10問にする
+    while (selected.length < 10 && units.length > 0) {
+      selected.push(pick(units));
+    }
+
+    randomTestQueue = selected.map(u => {
+      const stepKeys = ['step1', 'step2', 'step3'];
+      return { unit: u, stepKey: pick(stepKeys) };
+    });
+
+    isRandomTestMode = true;
+    randomTestTotal = randomTestQueue.length;
+    randomTestScore = 0;
+    questionCount = 1;
+    answerCount = 0;
+    sessionId++;
+
+    document.querySelectorAll(".menuPane").forEach(p => p.classList.remove("active"));
+    document.getElementById("subjectNav").style.display = "none";
+    const randBar = document.getElementById("randomTestBar");
+    if (randBar) randBar.style.display = "none";
+    document.getElementById("globalTools").style.display = "none";
+    document.getElementById("unitSubMenu").style.display = "none";
+
+    show("quizCard", "flex");
+    show("workspace", "flex");
+    show("buttons", "flex");
+    setQuiz(true);
+
+    isPassageMode = false;
+    document.getElementById("passageBox").style.display = "none";
+    makeStepQuestion();
+  };
+
+  // --- 特定ステップの出題開始 ---
+  window.startUnitStep = function(unitId, stepKey) {
+    const unit = UNIT_CATALOG.find(u => u.id === unitId);
+    if (!unit) return;
+    const step = unit.steps[stepKey];
+    if (!step) return;
+
+    currentUnit = unit;
+    currentStep = stepKey;
+    isRandomTestMode = false;
+    randomTestQueue = [];
+    sessionId++;
+    questionCount = 1;
+    answerCount = 0;
+
+    document.getElementById("unitSubMenu").style.display = "none";
+    show("quizCard", "flex");
+    show("workspace", "flex");
+    show("buttons", "flex");
+    setQuiz(true);
+
+    if (step.key && step.key.startsWith("jp_pass_")) {
+      window.startPassageQuestion("jp_p_elem1");
+      return;
+    }
+    if (step.key && step.key.startsWith("en_pass_")) {
+      window.startPassageQuestion("en_p_elem1");
+      return;
+    }
+
+    isPassageMode = false;
+    document.getElementById("passageBox").style.display = "none";
+    makeStepQuestion();
+  };
+
+  window.startPassageQuestion = function(pId) {
+    const p = PASSAGES[pId] || PASSAGES["jp_p_elem1"];
+    isPassageMode = true;
+    currentPassage = p;
+    currentPassageQIdx = 0;
+
+    const pBox = document.getElementById("passageBox");
+    pBox.style.display = "block";
+    document.getElementById("passageTitleText").textContent = p.title;
+    document.getElementById("passageGenreBadge").textContent = p.genre + " (" + p.level + ")";
+    document.getElementById("passageContent").textContent = p.text;
+
+    makePassageQuestionItem();
+  };
+
+  function makePassageQuestionItem() {
+    hideHintBox();
+    usedHintInCurrentQuestion = false;
+    const p = currentPassage;
+    const qData = p.questions[currentPassageQIdx];
+
+    document.getElementById("quizUnitName").textContent = currentUnit ? currentUnit.name : p.title;
+    document.getElementById("quizStepBadge").textContent = (currentPassageQIdx + 1) + " / " + p.questions.length + " 問";
+    document.getElementById("result").textContent = qData.q;
+    explainText = qData.explain;
+    hintText = `本文の該当箇所（傍線部やその前後2〜3行）を読み直すと手がかりがあります。登場人物の心情や因果関係を整理してみましょう。`;
+
+    // 選択肢のシャッフル出題
+    const correctVal = qData.options[qData.ans - 1];
+    const indexedOpts = qData.options.map((opt, i) => ({ opt, isCorrect: (i + 1 === qData.ans) }));
+    const shuffled = shuffleArray(indexedOpts);
+    const newCorrectIdx = shuffled.findIndex(item => item.isCorrect) + 1;
+    correctAnswer = String(newCorrectIdx);
+
+    renderChoiceButtons(shuffled.map(s => s.opt));
+    show("answerRow", "none");
+  }
+
+  function makeStepQuestion() {
+    document.getElementById("answer").value = "";
+    window.memoClear();
+    hideHintBox();
+    usedHintInCurrentQuestion = false;
+
+    let unit = currentUnit;
+    let stepKey = currentStep;
+
+    if (isRandomTestMode && randomTestQueue.length > 0) {
+      const curItem = randomTestQueue[questionCount - 1] || randomTestQueue[0];
+      unit = curItem.unit;
+      stepKey = curItem.stepKey;
+      currentUnit = unit;
+    } else if (currentStep === 'random' && unit) {
+      // 単元内ランダム特訓：ステップ1〜3からランダム選定
+      stepKey = pick(['step1', 'step2', 'step3']);
+    }
+
+    const step = unit.steps[stepKey] || unit.steps.step1;
+    const isTest = (currentStep === 'test');
+
+    document.getElementById("quizUnitName").textContent = unit.name;
+    if (isRandomTestMode) {
+      document.getElementById("quizStepBadge").textContent = `ランダム総合 (${questionCount}/${randomTestTotal})`;
+    } else if (currentStep === 'random') {
+      document.getElementById("quizStepBadge").textContent = `ランダム特訓 (${questionCount}/5)`;
+    } else {
+      document.getElementById("quizStepBadge").textContent = isTest ? `まとめテスト (${questionCount}/5)` : `${step.name} (${questionCount}/5)`;
+    }
+
+    if (unit.subj === 'math') {
+      runMathEngine(step.key, step.level);
+      document.getElementById("choicesArea").style.display = "none";
+      show("answerRow", "block");
+      updateSymbols(true);
+      return;
+    }
+
+    // 他教科：タプル辞書から出題（ランダム選択＋選択肢ランダムシャッフル）
+    const pool = KNOWLEDGE_TUPLES[step.key] || KNOWLEDGE_TUPLES["jp_kanji"];
+    const item = pick(pool);
+    document.getElementById("result").textContent = `第 ${questionCount} 問\n${item[0]}`;
+    explainText = item[3];
+
+    // より親切で実用的な学習ヒントの生成
+    const baseExp = item[3] || "";
+    if (unit.subj === 'japanese') {
+      hintText = `【国語の着眼点】前後の文脈や言葉の働き・品詞を意識しましょう。(${baseExp.slice(0, 30)}...)`;
+    } else if (unit.subj === 'english') {
+      hintText = `【英語の着眼点】主語と動詞の関係、時制や語順のルールを確認しましょう。(${baseExp.slice(0, 30)}...)`;
+    } else if (unit.subj === 'science') {
+      hintText = `【理科の着眼点】実験条件の変化や科学的な法則・原理を思い出してください。(${baseExp.slice(0, 30)}...)`;
+    } else if (unit.subj === 'social') {
+      hintText = `【社会の着眼点】時代の背景や目的・人物の関わりに注目してみましょう。(${baseExp.slice(0, 30)}...)`;
+    } else {
+      hintText = `【ヒント】${baseExp.slice(0, 40)}...`;
+    }
+
+    const rawOpts = item[1].split(",");
+    const origAnsIdx = Number(item[2]) - 1;
+    const indexedOpts = rawOpts.map((opt, i) => ({ opt, isCorrect: (i === origAnsIdx) }));
+    const shuffled = shuffleArray(indexedOpts);
+    const newCorrectIdx = shuffled.findIndex(s => s.isCorrect) + 1;
+    correctAnswer = String(newCorrectIdx);
+
+    renderChoiceButtons(shuffled.map(s => s.opt));
+    show("answerRow", "none");
+  }
+
+  // --- 算数・数学 超高効率動的ジェネレーター ---
+  function runMathEngine(key, lvl) {
+    currentMathKey = key;
+    currentChoiceList = [];
+    if (key === "math_addsub") {
+      const add = Math.random() < 0.5;
+      const A = randRange(15, 88), B = randRange(15, 88);
+      correctAnswer = add ? A + B : Math.max(A, B) - Math.min(A, B);
+      hintText = add ? `一の位同士、十の位同士を順番に足してみましょう（繰り上がりに注意）。` : `大きい数から小さい数を筆算のように引いてみましょう。`;
+      explainText = add ? `${A} + ${B} = ${correctAnswer}` : `${Math.max(A,B)} - ${Math.min(A,B)} = ${correctAnswer}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${add ? A + " + " + B : Math.max(A,B) + " - " + Math.min(A,B)} = ?`;
+    } else if (key === "math_mul") {
+      const a = randRange(2, 9), b = randRange(2, 9);
+      correctAnswer = a * b;
+      hintText = `${a} の段の九九を思い出してみましょう。`;
+      explainText = `九九: ${a} × ${b} = ${correctAnswer}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${a} × ${b} = ?`;
+    } else if (key === "math_div") {
+      const a = randRange(2, 9), b = randRange(2, 9);
+      correctAnswer = b;
+      hintText = `「${a} に何をかけると ${a * b} になるか」を考えます。`;
+      explainText = `${a * b} ÷ ${a} = ${b}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${a * b} ÷ ${a} = ?`;
+    } else if (key === "math_linear_eq") {
+      const x = randRange(-8, 8), a = randRange(2, 6), b = randNZ(-8, 8);
+      correctAnswer = x;
+      hintText = `定数項を右辺に移項し、両辺を x の係数 ${a} で割ります。`;
+      explainText = `${a}x = ${a * x + b} - ${pn(b)} = ${a * x} → x = ${x}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${a}x ${b >= 0 ? "+ " + b : "- " + Math.abs(b)} = ${a * x + b} を解け`;
+    } else if (key === "math_root") {
+      const n = randRange(2, 15);
+      correctAnswer = n;
+      hintText = `2乗して ${n * n} になる正の数を求めます。`;
+      explainText = `${n * n} = ${n}² なので √${n * n} = ${n}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n√${n * n} の値を求めよ`;
+    } else if (key === "math_pythag") {
+      const tri = pick([[3, 4, 5], [5, 12, 13], [6, 8, 10], [8, 15, 17]]);
+      correctAnswer = tri[2];
+      hintText = `直角三角形の斜辺 c は c² = a² + b² （三平方の定理）を満たします。`;
+      explainText = `三平方の定理より ${tri[0]}² + ${tri[1]}² = ${tri[2] * tri[2]} → 斜辺 = ${tri[2]}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n直角三角形で直角をはさむ2辺が ${tri[0]} と ${tri[1]} のとき、斜辺の長さを求めよ`;
+    } else if (key === "math_trig") {
+      const t = pick([["sin 30°", "1/2"], ["cos 60°", "1/2"], ["tan 45°", "1"], ["sin 45°", "√2/2"], ["cos 30°", "√3/2"], ["tan 60°", "√3"]]);
+      correctAnswer = t[1];
+      hintText = `特別な直角三角形（30°-60°-90° または 45°-45°-90°）の辺の比を思い出してください。`;
+      explainText = `${t[0]} = ${t[1]}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${t[0]} の値を求めよ`;
+    } else if (key === "math_diff_high") {
+      const a = randRange(1, 3), b = randRange(-4, 4), k = randRange(-2, 3);
+      correctAnswer = 2 * a * k + b;
+      hintText = `(x²)' = 2x, (x)' = 1 の公式を使ってまず導関数 f'(x) を求めてから代入します。`;
+      explainText = `f'(x) = 2ax + b より f'(${k}) = ${2 * a}×${pn(k)} + ${pn(b)} = ${correctAnswer}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\nf(x) = ${a}x² ${b >= 0 ? "+ " + b : "- " + Math.abs(b)}x のとき、f'(${k}) の値を求めよ`;
+    } else if (key === "math_uni_partial") {
+      const a = randRange(2, 4);
+      correctAnswer = 2 * a;
+      hintText = `x で偏微分するときは y を定数とみなして通常の微分を行います。`;
+      explainText = `f(x, y) = ${a}x²y のとき fx = 2·${a}xy です。(1, 1) を代入して ${2 * a}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問 (大学数学)\nf(x, y) = ${a}x²y の点(1, 1)における偏微分 fx(1, 1) を求めよ`;
+    } else if (key === "math_uni_det") {
+      const a = randRange(1, 4), b = randRange(1, 4), c = randRange(1, 4), d = randRange(1, 4);
+      correctAnswer = a * d - b * c;
+      hintText = `行列式は主対角成分の積から非主対角成分の積を引いたもの（ad - bc）です。`;
+      explainText = `2次正方行列の行列式: det = ad - bc = ${a}×${d} - ${b}×${c} = ${correctAnswer}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問 (大学数学)\n行列 [[${a}, ${b}], [${c}, ${d}]] の行列式 det(A) を求めよ`;
+    } else {
+      const A = randRange(10, 40), B = randRange(10, 30);
+      correctAnswer = A + B;
+      hintText = `2つの数を慎重に加算してみましょう。`;
+      explainText = `${A} + ${B} = ${correctAnswer}`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\n${A} + ${B} = ?`;
+    }
+  }
+
+  function renderChoiceButtons(options) {
+    currentChoiceList = options.slice();
+    currentMathKey = "";
+    const container = document.getElementById("choicesArea");
+    container.style.display = "flex";
+    container.innerHTML = options.map((opt, i) => {
+      const num = i + 1;
+      return `<button type="button" class="choiceOptionBtn" onclick="window.selectChoiceAnswer('${num}')">
+        <span class="optNum">${num}</span>
+        <span>${esc(opt)}</span>
+      </button>`;
+    }).join("");
+  }
+
+  window.selectChoiceAnswer = function(val) {
+    if (answerCount !== 0) return;
+    document.getElementById("answer").value = val;
+    window.checkAnswer();
+  };
+
+  function updateSymbols(isMath) {
+    const box = document.getElementById("symbols");
+    let keys = isMath ?
+      [{ t: "-", v: "-" }, { t: "/", v: "/" }, { t: "√", v: "√" }, { t: ".", v: "." }, { t: "⌫", a: "back" }, { t: "クリア", a: "clear" }] :
+      [{ t: "1", v: "1" }, { t: "2", v: "2" }, { t: "3", v: "3" }, { t: "4", v: "4" }, { t: "⌫", a: "back" }, { t: "クリア", a: "clear" }];
+
+    box.innerHTML = keys.map(k =>
+      `<button type="button" data-v="${k.v || ''}" data-a="${k.a || ''}">${k.t}</button>`
+    ).join("");
+  }
+
+  document.getElementById("symbols").addEventListener("mousedown", e => e.preventDefault());
+  document.getElementById("symbols").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const v = b.getAttribute("data-v");
+    const a = b.getAttribute("data-a");
+    const input = document.getElementById("answer");
+    if (a === "clear") { input.value = ""; }
+    else if (a === "back") { input.value = input.value.slice(0, -1); }
+    else if (v) { input.value += v; }
+    input.focus();
+  });
+
+  // --- 間違え方の診断エンジン（教科ごとのミスパターン分類と対策生成） ---
+  function diagnoseMistake(subject, userRaw, correctRaw, questionText, explain, hint, choices, mathKey) {
+    const qStr = (questionText || "").toLowerCase();
+    const expStr = (explain || "").toLowerCase();
+
+    let userText = userRaw || "";
+    let correctText = String(correctRaw || "");
+    if (choices && choices.length > 0) {
+      const uIdx = Number(userRaw) - 1;
+      if (choices[uIdx]) userText = choices[uIdx];
+      const cIdx = Number(correctRaw) - 1;
+      if (choices[cIdx]) correctText = choices[cIdx];
+    }
+
+    const uNum = Number(normalizeNumberText(userRaw));
+    const cNum = Number(normalizeNumberText(correctRaw));
+    const hasNumbers = !Number.isNaN(uNum) && !Number.isNaN(cNum);
+
+    // 1. 算数・数学の診断
+    if (subject === 'math') {
+      if (hasNumbers && uNum === -cNum && cNum !== 0) {
+        return {
+          label: "符号ミス（正負・マイナスの逆転）",
+          detail: `正解(${cNum})と絶対値が同じですが符号が逆(${uNum})になっています。`,
+          advice: "移項した際の符号変化（＋から−へ）や、負の数で掛けたり割ったりする際の符号反転を意識しましょう。",
+          category: "sign_error"
+        };
+      }
+      if (mathKey === "math_root" || qStr.includes("√") || qStr.includes("平方根")) {
+        return {
+          label: "平方根・2乗の混同",
+          detail: `2乗してその数になる平方根の計算で、2乗との取り違えや素因数分解のミスが生じています。`,
+          advice: "「√a は2乗して a になる数」という定義を思い出し、√の中身を素因数分解して整理しましょう。",
+          category: "formula_root"
+        };
+      }
+      if (mathKey === "math_pythag" || qStr.includes("三平方") || qStr.includes("斜辺")) {
+        return {
+          label: "三平方の定理・公式適用の誤り",
+          detail: `直角三角形の斜辺定理（c² = a² + b²）の二乗計算やルートの処理でミスが生じています。`,
+          advice: "斜辺の長さを求める際は「a² + b² を計算してから平方根をとる」手順を丁寧に書き出しましょう。",
+          category: "formula_pythag"
+        };
+      }
+      if (mathKey && (mathKey.includes("diff") || mathKey.includes("uni") || mathKey.includes("det"))) {
+        return {
+          label: "導関数・微積分・行列式の適用ミス",
+          detail: `微分の係数掛け算（(x²)'=2x）や代入計算、行列式（ad - bc）の積の順序で誤りがあります。`,
+          advice: "先に導関数 f'(x) を一行書き出してから、指定された数値を落ち着いて代入しましょう。",
+          category: "calculus_error"
+        };
+      }
+      if (hasNumbers && (uNum === cNum * 10 || uNum === cNum / 10 || Math.abs(uNum - cNum) === 10 || Math.abs(uNum - cNum) === 100)) {
+        return {
+          label: "位取り・繰り上がり/繰り下がりの誤り",
+          detail: `十の位や百の位の繰り上がり・繰り下げ計算、または小数点の位置でズレが生じています。`,
+          advice: "筆算の桁を縦にきれいに揃えて書き、繰り上がりメモを省略しないことがミス防止のコツです。",
+          category: "place_value"
+        };
+      }
+      if (qStr.includes("+") && hasNumbers && (cNum > uNum || expStr.includes("+"))) {
+        return {
+          label: "演算順序・四則計算の取り違え",
+          detail: `加減乗除の順序や移項の逆算（足すところを引いた等）で取り違えが起きています。`,
+          advice: "掛け算・割り算を先に行う優先順位を守り、途中式を省略せずに1行ずつ変形しましょう。",
+          category: "operation_order"
+        };
+      }
+      return {
+        label: "計算手順・ケアレスミス",
+        detail: `解き方の筋道は合っていますが、途中の四則演算で数値のズレが生じています。`,
+        advice: "暗算に頼らず、余白キャンバスやメモに途中計算を残して最後に逆算チェックをしましょう。",
+        category: "arithmetic_slip"
+      };
+    }
+
+    // 2. 英語の診断
+    if (subject === 'english') {
+      const isTenseChoice = /[a-zA-Z]+(ed|ing|s|es)\b/.test(userText) || /[a-zA-Z]+(ed|ing|s|es)\b/.test(correctText) ||
+        /\b(yesterday|last|ago|tomorrow|will|did|was|were|has|have)\b/i.test(qStr);
+      if (isTenseChoice || qStr.includes("過去") || qStr.includes("三人称")) {
+        return {
+          label: "時制・三人称単数（-s / -ed）の見落とし",
+          detail: `主語の人称（he, she, it）や文全体の時制（過去・現在・未来）のルールを見落としています。`,
+          advice: "英文中の主語と、時制を示すキーワード（yesterday, every dayなど）に印をつける癖をつけましょう。",
+          category: "tense_agreement"
+        };
+      }
+      const isPreposition = /\b(in|on|at|to|for|with|by|from|about|of|into|under)\b/i.test(userText) ||
+        /\b(in|on|at|to|for|with|by|from|about|of|into|under)\b/i.test(correctText);
+      if (isPreposition) {
+        return {
+          label: "前置詞・助動詞の使い分けミス",
+          detail: `時間や場所・手段を表す前置詞（in, on, at, for等）のニュアンスを取り違えています。`,
+          advice: "前置詞単体ではなく「動詞＋前置詞＋名詞」のフレーズごと口に出して音読暗記しましょう。",
+          category: "preposition_slip"
+        };
+      }
+      if (qStr.includes("語順") || qStr.includes("並び替え") || /\b(who|which|what|where|why|how)\b/i.test(qStr)) {
+        return {
+          label: "語順・文構造（文型）の誤認",
+          detail: `英語特有の「主語＋動詞＋目的語」の語順や疑問詞の導く文構造で混乱が生じています。`,
+          advice: "まず「誰が・どうする・何を」の骨格を見極めてから、修飾語句を付け足す意識を持ちましょう。",
+          category: "sentence_structure"
+        };
+      }
+      if (userText.length > 0 && Math.abs(userText.length - correctText.length) <= 2) {
+        return {
+          label: "紛らわしい類似語・つづりの混同",
+          detail: `見た目やスペル、発音が似ている紛らわしい英単語を選択してしまっています。`,
+          advice: "似ている単語同士をノートに対比して書き出し、意味と例文をセットで区別して覚えましょう。",
+          category: "vocab_confusion"
+        };
+      }
+      return {
+        label: "重要イディオム・語彙の知識抜け",
+        detail: `設問の重要英単語や連語表現（コロケーション）の定着が不足している可能性があります。`,
+        advice: "間違えた英単語は単語カードにチェックを入れ、日本語訳を見たら即座に言えるまで反復しましょう。",
+        category: "vocab_gap"
+      };
+    }
+
+    // 3. 国語の診断
+    if (subject === 'japanese') {
+      if (qStr.includes("漢字") || qStr.includes("同音") || qStr.includes("送り仮名") || qStr.includes("対義語")) {
+        return {
+          label: "同音異義語・漢字使い分けの誤り",
+          detail: `読みが同じで意味が異なる漢字（例：「機会」と「器械」など）と混同しています。`,
+          advice: "熟語を構成する漢字一文字ずつの意味に分解し、文脈の意味に合致するか確かめましょう。",
+          category: "homophone_kanji"
+        };
+      }
+      if (qStr.includes("敬語") || qStr.includes("尊敬") || qStr.includes("謙譲") || qStr.includes("丁寧") ||
+          userText.includes("おっしゃる") || userText.includes("申す") || userText.includes("参る")) {
+        return {
+          label: "敬語の種類（尊敬・謙譲・丁寧）の混同",
+          detail: `「相手を立てる尊敬語」と「自分側をへりくだる謙譲語」の主語・立場の視点が逆転しています。`,
+          advice: "「その動作を行う主語は自分か相手か」を真っ先にチェックする習慣を身につけましょう。",
+          category: "keigo_confusion"
+        };
+      }
+      if (qStr.includes("ことわざ") || qStr.includes("慣用句") || qStr.includes("四字熟語")) {
+        return {
+          label: "慣用句・ことわざの語句取り違え",
+          detail: `体の一部を使った慣用句やことわざの表現を、別の類似した語句と取り違えています。`,
+          advice: "言葉の成り立ちや比喩のイメージを思い浮かべながら、正確な語句の組み合わせで覚えましょう。",
+          category: "proverb_idiom"
+        };
+      }
+      if (qStr.includes("傍線部") || qStr.includes("理由") || qStr.includes("心情") || qStr.includes("指示語")) {
+        return {
+          label: "文脈・指示語・因果関係の読み落とし",
+          detail: `設問の根拠となる本文箇所の確認が不足し、思い込みで選択肢を選んでしまっています。`,
+          advice: "傍線部の直前直後だけでなく、理由を表す「から」「ので」や指示語（これ・それ）の内容を確かめましょう。",
+          category: "reading_context"
+        };
+      }
+      return {
+        label: "文法・助詞・言葉の働きの誤認",
+        detail: `文の成分（主語・述語・修飾語）や助詞のニュアンスを取り違えています。`,
+        advice: "文の骨組み「何が・どうする」を捉えてから修飾関係を丁寧に整理しましょう。",
+        category: "jp_grammar"
+      };
+    }
+
+    // 4. 理科の診断
+    if (subject === 'science') {
+      if (/[0-9]/.test(userText) || /[0-9]/.test(correctText) || qStr.includes("計算") || qStr.includes("単位") ||
+          /\b(V|A|mA|N|g|kg|cm|mL|W|J)\b/.test(qStr)) {
+        return {
+          label: "単位・数値換算のミス",
+          detail: `100g=1N や 1000mA=1A などの単位換算、またはオームの法則等の掛け算・割り算の取り違えです。`,
+          advice: "数値の横に必ず単位（V, A, Nなど）を書き添え、桁数が正しいか確認する習慣をつけましょう。",
+          category: "sci_units"
+        };
+      }
+      if (qStr.includes("直列") || qStr.includes("並列") || qStr.includes("酸性") || qStr.includes("アルカリ") ||
+          qStr.includes("光合成") || qStr.includes("呼吸") || qStr.includes("動脈") || qStr.includes("静脈") ||
+          qStr.includes("酸化") || qStr.includes("還元") || qStr.includes("凸") || qStr.includes("凹")) {
+        return {
+          label: "対立概念・科学法則の取り違え",
+          detail: `対になる科学現象や法則（直列と並列、酸性とアルカリ性など）の特徴を逆にしてしまっています。`,
+          advice: "対比する性質をノートに左右2列の比較表にして整理し、両者の決定的な違いを覚えましょう。",
+          category: "sci_concept_flip"
+        };
+      }
+      if (qStr.includes("実験") || qStr.includes("器具") || qStr.includes("顕微鏡") || qStr.includes("バーナー") ||
+          qStr.includes("試験管") || qStr.includes("操作")) {
+        return {
+          label: "実験器具の操作手順・安全注意点の誤認",
+          detail: `操作の手順や「なぜその順序で行うか」の安全上の理由を取り違えています。`,
+          advice: "「火を消す前にガラス管を水から抜く（逆流防止）」など、理由と操作をセットで暗記しましょう。",
+          category: "sci_apparatus"
+        };
+      }
+      return {
+        label: "科学用語・基本定義の知識抜け",
+        detail: `科学現象の名称や生体器官・物質名の定義が定着していない可能性があります。`,
+        advice: "教科書の太字キーワードと図・写真をセットで眺め、視覚的にイメージを結びつけましょう。",
+        category: "sci_vocab"
+      };
+    }
+
+    // 5. 社会の診断
+    if (subject === 'social') {
+      if (qStr.includes("時代") || qStr.includes("年") || qStr.includes("世紀") ||
+          /\b(縄文|弥生|古墳|奈良|平安|鎌倉|室町|安土桃山|江戸|明治|大正|昭和)\b/.test(qStr)) {
+        return {
+          label: "時代区分・歴史の流れの前後混同",
+          detail: `出来事や文化・制度がどの時代に起きたかの時代区分が前後して混同しています。`,
+          advice: "歴史年表を活用し、「誰が権力を握っていた時代か」と出来事をセットで整理しましょう。",
+          category: "soc_chronology"
+        };
+      }
+      if (qStr.includes("気候") || qStr.includes("雨温図") || qStr.includes("県") || qStr.includes("工業") ||
+          qStr.includes("農業") || qStr.includes("貿易") || qStr.includes("川") || qStr.includes("山脈")) {
+        return {
+          label: "地理的特徴・気候・産業の混同",
+          detail: `雨温図のグラフの読み取りや、地域別の特産物・工業地帯の特徴を取り違えています。`,
+          advice: "地図帳を見ながら、地形・気候と産業の立地理由を論理的に結びつけて整理しましょう。",
+          category: "soc_geography"
+        };
+      }
+      if (qStr.includes("憲法") || qStr.includes("国会") || qStr.includes("内閣") || qStr.includes("裁判所") ||
+          qStr.includes("選挙") || qStr.includes("権利") || qStr.includes("三権分立")) {
+        return {
+          label: "政治機構・憲法・三権分立の混同",
+          detail: `国会・内閣・裁判所の権限や、基本的人権の種類（自由権・平等権・社会権等）を取り違えています。`,
+          advice: "三権分立の相関図を描いて、どの機関がどの機関を抑制しているか図解で覚えましょう。",
+          category: "soc_civics"
+        };
+      }
+      return {
+        label: "歴史的人物・条約・法令名の混同",
+        detail: `似た名前の人物や、複数の条約・改革（寛政の改革・天保の改革など）を取り違えています。`,
+        advice: "「改革を行った人物」と「その目的・結果」を表にして対比しながら整理しましょう。",
+        category: "soc_figures"
+      };
+    }
+
+    // 汎用フォールバック
+    return {
+      label: "重要用語・基本定義の確認不足",
+      detail: `設問の着眼点や選択肢の差異の確認が不足し、紛らわしい選択肢を選んでしまっています。`,
+      advice: "解説で正解の理由と不正解の理由を両方確認し、用語の定義を再インプットしましょう。",
+      category: "general_concept"
+    };
+  }
+
+  // --- 回答判定と次の問題への遷移（強化されたフィードバック＆間違い診断機能） ---
+  window.checkAnswer = async function() {
+    if (nextResolver) {
+      const r = nextResolver;
+      nextResolver = null;
+      r();
+      return;
+    }
+    if (answerCount !== 0) return;
+
+    const raw = document.getElementById("answer").value.trim();
+    if (raw === "") return;
+
+    answerCount = 1;
+    const mySession = sessionId;
+
+    const cleanRaw = normalizeNumberText(raw).toLowerCase().replace(/\s/g, "");
+    const cleanAns = String(correctAnswer).toLowerCase().replace(/\s/g, "");
+    let isCorrect = (cleanRaw === cleanAns);
+
+    if (!isCorrect && !Number.isNaN(Number(cleanRaw)) && !Number.isNaN(Number(cleanAns))) {
+      isCorrect = Math.abs(Number(cleanRaw) - Number(cleanAns)) < 1e-9;
+    }
+
+    const unitName = currentUnit ? currentUnit.name : (currentPassage ? currentPassage.title : "演習");
+    const qSummary = (document.getElementById("result").textContent || "").split("\n")[1] || document.getElementById("result").textContent;
+    subjectStats[currentSubject].total += 1;
+    subjectStats[currentSubject].byUnit[unitName] = subjectStats[currentSubject].byUnit[unitName] || { total: 0, correct: 0, noHintCorrect: 0 };
+    subjectStats[currentSubject].byUnit[unitName].total += 1;
+
+    // 選択肢テキストまたは入力回答の整理
+    let userDisplay = raw || "無回答";
+    let correctDisplay = String(correctAnswer);
+    if (currentChoiceList.length > 0) {
+      const uIdx = Number(raw) - 1;
+      if (currentChoiceList[uIdx]) userDisplay = `[${raw}] ${currentChoiceList[uIdx]}`;
+      const cIdx = Number(correctAnswer) - 1;
+      if (currentChoiceList[cIdx]) correctDisplay = `[${correctAnswer}] ${currentChoiceList[cIdx]}`;
+    }
+
+    let currentDiagnosis = null;
+
+    if (isCorrect) {
+      streak++;
+      maxStreak = Math.max(maxStreak, streak);
+      if (isRandomTestMode) randomTestScore++;
+      subjectStats[currentSubject].correct += 1;
+      subjectStats[currentSubject].byUnit[unitName].correct += 1;
+      if (!usedHintInCurrentQuestion) {
+        subjectStats[currentSubject].byUnit[unitName].noHintCorrect = (subjectStats[currentSubject].byUnit[unitName].noHintCorrect || 0) + 1;
+      }
+
+      const streakBonus = streak >= 2 ? ` (🔥 ${streak}問連続正解！)` : "";
+      const compliments = ["正解！ その調子です。", "見事正解！ 素晴らしい着眼点です。", "正解！ 基礎がしっかり定着しています。"];
+      document.getElementById("result").innerHTML = `
+        <div style="color: #16a34a; font-weight: 700; font-size: 15px;">✓ ${pick(compliments)}${streakBonus}</div>
+      `;
+    } else {
+      streak = 0;
+
+      // 間違え方の診断を実行
+      currentDiagnosis = diagnoseMistake(
+        currentSubject,
+        raw,
+        correctAnswer,
+        qSummary,
+        explainText,
+        hintText,
+        currentChoiceList,
+        currentMathKey
+      );
+
+      // 教科ごとの間違え方パターンの集計
+      subjectStats[currentSubject].mistakePatterns = subjectStats[currentSubject].mistakePatterns || {};
+      const patKey = currentDiagnosis.label;
+      if (!subjectStats[currentSubject].mistakePatterns[patKey]) {
+        subjectStats[currentSubject].mistakePatterns[patKey] = {
+          count: 0,
+          label: currentDiagnosis.label,
+          advice: currentDiagnosis.advice,
+          category: currentDiagnosis.category
+        };
+      }
+      subjectStats[currentSubject].mistakePatterns[patKey].count += 1;
+
+      // 不正解時の即時フィードバック表示（どんな間違え方をしたかを提示）
+      document.getElementById("result").innerHTML = `
+        <div style="font-weight: 700; color: #dc2626; font-size: 14px; margin-bottom: 2px;">❌ 不正解</div>
+        <div style="font-size: 12.5px; color: #334155; margin-bottom: 5px;">
+          あなたの回答: <strong style="color: #dc2626;">${esc(userDisplay)}</strong> / 正解: <strong style="color: #16a34a;">${esc(correctDisplay)}</strong>
+        </div>
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 6px 9px; font-size: 12px; color: #991b1b; text-align: left; line-height: 1.5;">
+          <strong>⚠️ 【間違え方の診断】:</strong> ${esc(currentDiagnosis.label)}<br>
+          <span style="color: #450a0a; font-size: 11.5px;">${esc(currentDiagnosis.detail)}</span>
+        </div>
+      `;
+
+      // 誤答ログを記録（最大30件まで）
+      subjectStats[currentSubject].wrongHistory = subjectStats[currentSubject].wrongHistory || [];
+      subjectStats[currentSubject].wrongHistory.unshift({
+        unit: unitName,
+        q: qSummary.slice(0, 45),
+        ans: correctDisplay,
+        userAns: userDisplay,
+        mistakeLabel: currentDiagnosis.label,
+        mistakeDetail: currentDiagnosis.detail,
+        mistakeAdvice: currentDiagnosis.advice,
+        explain: explainText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      if (subjectStats[currentSubject].wrongHistory.length > 30) {
+        subjectStats[currentSubject].wrongHistory.pop();
+      }
+    }
+
+    // 最近の学習履歴を記録（正解・不正解問わず直近100件を保存）
+    recentHistory = recentHistory || [];
+    recentHistory.unshift({
+      id: Date.now() + "_" + Math.random().toString(36).slice(2, 6),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      date: (new Date().getMonth() + 1) + "/" + new Date().getDate(),
+      subject: currentSubject,
+      subjectName: SUBJ_INFO[currentSubject].name,
+      unitName: unitName,
+      question: qSummary,
+      userAns: userDisplay,
+      correctAns: correctDisplay,
+      isCorrect: isCorrect,
+      usedHint: !!usedHintInCurrentQuestion,
+      mistakeLabel: currentDiagnosis ? currentDiagnosis.label : null,
+      mistakeDetail: currentDiagnosis ? currentDiagnosis.detail : null,
+      mistakeAdvice: currentDiagnosis ? currentDiagnosis.advice : null,
+      explain: explainText || ""
+    });
+    if (recentHistory.length > 100) {
+      recentHistory.pop();
+    }
+    saveData();
+
+    let manual = false;
+    if ((!isCorrect || settings.explainOnCorrect) && explainText) {
+      manual = true;
+      openExplain(isCorrect, currentDiagnosis);
+      await waitForNext();
+      closeExplain();
+    } else {
+      await sleep(isCorrect ? 800 : 2000);
+    }
+    if (mySession !== sessionId) return;
+
+    if (isPassageMode && currentPassage) {
+      currentPassageQIdx++;
+      if (currentPassageQIdx < currentPassage.questions.length) {
+        questionCount++;
+        answerCount = 0;
+        makePassageQuestionItem();
+        return;
+      } else {
+        document.getElementById("result").textContent = "この文章題のすべての設問が完了しました！";
+        await sleep(1800);
+        window.openUnitSubMenu(currentUnit.id);
+        return;
+      }
+    }
+
+    const maxQ = isRandomTestMode ? randomTestTotal : 5;
+    if (questionCount >= maxQ) {
+      if (isRandomTestMode) {
+        const rate = Math.round(100 * randomTestScore / randomTestTotal);
+        document.getElementById("result").textContent = `🏆 ランダム総合テスト完了！\nスコア: ${randomTestScore} / ${randomTestTotal} 問 (${rate}%)\n学習分析レポートで弱点分野を確認しましょう！`;
+        await sleep(2500);
+        window.goHome();
+        return;
+      } else {
+        const isTest = (currentStep === 'test');
+        document.getElementById("result").textContent = isTest ?
+          "単元まとめテスト完了！ お疲れ様でした。\n成績レポートで弱点分野を確認できます。" :
+          "ステップ完了！ 次の段階やまとめテストに進みましょう。";
+        await sleep(2000);
+        if (currentUnit) window.openUnitSubMenu(currentUnit.id);
+        else window.goHome();
+        return;
+      }
+    }
+
+    questionCount++;
+    answerCount = 0;
+    makeStepQuestion();
+  };
+
+  function waitForNext() {
+    return new Promise(resolve => {
+      nextResolver = resolve;
+      document.getElementById("checkAnswer").textContent = "次へ進む ▶";
+    });
+  }
+
+  function openExplain(isCorrect, diagnosis) {
+    const box = document.getElementById("explain");
+    const badgeText = isCorrect ? "解法のポイント" : "詳しい解説・解き方";
+    box.innerHTML = `
+      <div class="step ans">
+        <span class="badge">${badgeText}</span>
+        <div style="margin-top: 6px;"><strong>正解:</strong> ${esc(correctAnswer)}</div>
+        <div style="margin-top: 4px; line-height: 1.6;">${esc(explainText)}</div>
+        ${hintText ? `<div style="margin-top: 6px; font-size: 12px; color: #b45309; background: #fffbeb; padding: 6px 8px; border-radius: 4px;"><strong>💡 つまずき防止の要点:</strong> ${esc(hintText)}</div>` : ''}
+        ${!isCorrect && diagnosis ? `
+          <div class="mistakeDiagnosisBox">
+            <div class="mistakeDiagHeader">
+              <span class="mistakeTag">⚠️ 間違え方の分析</span>
+              <strong class="mistakeLabel">${esc(diagnosis.label)}</strong>
+            </div>
+            <div class="mistakeDetail">${esc(diagnosis.detail)}</div>
+            <div class="mistakeAdviceBox">
+              <strong>🎯 対策アドバイス:</strong> ${esc(diagnosis.advice)}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    box.style.display = "block";
+    show("memoArea", "none");
+  }
+
+  function closeExplain() {
+    document.getElementById("explain").style.display = "none";
+    document.getElementById("checkAnswer").textContent = "回答する";
+    if (!isMemoCollapsed) show("memoArea", "flex");
+  }
+
+  // --- 手書きメモキャンバス ---
+  const memoCanvas = document.getElementById("memoCanvas");
+  const memoCtx = memoCanvas.getContext("2d");
+  let memoDrawing = false;
+  let memoToolName = "pen";
+
+  window.memoSetTool = function(tool) {
+    memoToolName = tool;
+    memoCtx.globalCompositeOperation = tool === "eraser" ? "destination-out" : "source-over";
+    memoCtx.lineWidth = tool === "eraser" ? 28 : 4;
+    memoCtx.lineCap = "round";
+    memoCtx.lineJoin = "round";
+    memoCtx.strokeStyle = "#1e293b";
+    document.getElementById("memoBtnPen").classList.toggle("active", tool === "pen");
+    document.getElementById("memoBtnEraser").classList.toggle("active", tool === "eraser");
+  };
+  window.memoSwitch = function(mode) {
+    const isDraw = mode === "draw";
+    memoCanvas.style.display = isDraw ? "block" : "none";
+    document.getElementById("memoText").style.display = isDraw ? "none" : "block";
+    document.getElementById("memoBtnDraw").classList.toggle("active", isDraw);
+    document.getElementById("memoBtnText").classList.toggle("active", !isDraw);
+  };
+  window.memoClear = function() {
+    memoCtx.clearRect(0, 0, memoCanvas.width, memoCanvas.height);
+    document.getElementById("memoText").value = "";
+  };
+  window.toggleMemoCollapse = function() {
+    isMemoCollapsed = !isMemoCollapsed;
+    document.getElementById("memoArea").classList.toggle("collapsed", isMemoCollapsed);
+    document.getElementById("memoToggleBtn").textContent = isMemoCollapsed ? "メモを開く" : "最小化";
+  };
+
+  function fitMemoCanvas() {
+    const r = memoCanvas.getBoundingClientRect();
+    const w = Math.round(r.width), h = Math.round(r.height);
+    if (w < 20 || h < 20) return;
+    if (memoCanvas.width === w && memoCanvas.height === h) return;
+    memoCanvas.width = w;
+    memoCanvas.height = h;
+    window.memoSetTool(memoToolName);
+  }
+
+  function getCanvasPos(e) {
+    const r = memoCanvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - r.left) * memoCanvas.width / r.width,
+      y: (e.clientY - r.top) * memoCanvas.height / r.height
+    };
+  }
+
+  memoCanvas.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    memoDrawing = true;
+    memoCanvas.setPointerCapture(e.pointerId);
+    const p = getCanvasPos(e);
+    memoCtx.beginPath();
+    memoCtx.moveTo(p.x, p.y);
+    memoCtx.lineTo(p.x + 0.1, p.y + 0.1);
+    memoCtx.stroke();
+  });
+  memoCanvas.addEventListener("pointermove", e => {
+    if (!memoDrawing) return;
+    e.preventDefault();
+    const p = getCanvasPos(e);
+    memoCtx.lineTo(p.x, p.y);
+    memoCtx.stroke();
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach(ev =>
+    memoCanvas.addEventListener(ev, () => { memoDrawing = false; }));
+
+  window.memoSetTool("pen");
+  window.memoSwitch("draw");
+
+  // --- 数式・記号ノート画面 ---
+  const PALETTE = [
+    { name: "基本数式", keys: ["7","8","9","÷","(",")","4","5","6","×","{","}","1","2","3","-","[","]","0",".","=","+","√","^","/","%","±","π","²","³","x","y","z","a","b","c"] },
+    { name: "国語・古文", keys: ["「","」","『","』","【","】","・","※","ゐ","ゑ","ぢ","づ","レ点","一","二","上","下","返り点","助詞","助動詞"] },
+    { name: "理科・記号", keys: ["℃","K","mol","Ω","V","A","W","J","N","g","kg","mL","L","cm³","H₂O","CO₂","NaCl","O₂","H₂","Fe","Cu","→","←","↑","↓","⇒","⇔","≒","≠","≡","≦","≧"] }
+  ];
+  let notesData = { notes: [{ id: "n1", title: "学習メモ 1", text: "" }], current: "n1" };
+  let palTab = 0;
+
+  window.openNotes = function() {
+    ["quizCard", "passageBox", "workspace", "answerRow", "buttons", "analysis", "unitSubMenu"].forEach(id => show(id, "none"));
+    document.querySelectorAll(".menuPane").forEach(p => p.classList.remove("active"));
+    document.getElementById("subjectNav").style.display = "none";
+    document.getElementById("globalTools").style.display = "none";
+    document.body.classList.add("notes");
+    renderNotesUI();
+    updateTopBack();
+  };
+
+  function renderNotesUI() {
+    const sel = document.getElementById("noteSelect");
+    sel.innerHTML = notesData.notes.map(n =>
+      `<option value="${n.id}" ${n.id === notesData.current ? 'selected' : ''}>${esc(n.title)}</option>`
+    ).join("");
+    const cur = notesData.notes.find(n => n.id === notesData.current) || notesData.notes[0];
+    document.getElementById("noteText").value = cur.text;
+
+    document.getElementById("palTabs").innerHTML = PALETTE.map((p, i) =>
+      `<button type="button" class="${i === palTab ? 'active' : ''}" onclick="window.selectPalTab(${i})">${p.name}</button>`
+    ).join("");
+    document.getElementById("palKeys").innerHTML = PALETTE[palTab].keys.map(k =>
+      `<button type="button" onclick="window.insertNoteKey('${k}')">${k}</button>`
+    ).join("");
+  }
+
+  window.selectPalTab = function(i) { palTab = i; renderNotesUI(); };
+  window.insertNoteKey = function(txt) {
+    const el = document.getElementById("noteText");
+    const st = el.selectionStart || el.value.length;
+    el.value = el.value.slice(0, st) + txt + el.value.slice(st);
+    el.selectionStart = el.selectionEnd = st + txt.length;
+    el.focus();
+  };
+
+  document.getElementById("noteText").addEventListener("input", e => {
+    const cur = notesData.notes.find(n => n.id === notesData.current);
+    if (cur) cur.text = e.target.value;
+  });
+  document.getElementById("noteNew").addEventListener("click", () => {
+    const id = "n" + Date.now();
+    notesData.notes.push({ id: id, title: "学習メモ " + (notesData.notes.length + 1), text: "" });
+    notesData.current = id;
+    renderNotesUI();
+  });
+  document.getElementById("noteRename").addEventListener("click", () => {
+    const cur = notesData.notes.find(n => n.id === notesData.current);
+    const name = prompt("メモの新しい名前を入力してください:", cur ? cur.title : "");
+    if (name && name.trim()) { cur.title = name.trim(); renderNotesUI(); }
+  });
+  document.getElementById("noteDelete").addEventListener("click", () => {
+    if (notesData.notes.length <= 1) return;
+    if (confirm("このメモを削除しますか？")) {
+      notesData.notes = notesData.notes.filter(n => n.id !== notesData.current);
+      notesData.current = notesData.notes[0].id;
+      renderNotesUI();
+    }
+  });
+  document.getElementById("noteCopy").addEventListener("click", () => {
+    navigator.clipboard.writeText(document.getElementById("noteText").value).then(() => {
+      alert("メモ内容をクリップボードにコピーしました！");
+    });
+  });
+
+  // --- 高機能・回答分析 ＆ 学習診断ダッシュボード ---
+  window.jumpToReviewUnit = function(unitName) {
+    const unit = UNIT_CATALOG.find(u => u.name === unitName);
+    if (unit) {
+      window.openUnitSubMenu(unit.id);
+    } else {
+      window.goHome();
+    }
+  };
+
+  window.checkanalysis = function() {
+    ["quizCard", "passageBox", "workspace", "answerRow", "buttons", "notes", "unitSubMenu"].forEach(id => show(id, "none"));
+    document.querySelectorAll(".menuPane").forEach(p => p.classList.remove("active"));
+    document.getElementById("subjectNav").style.display = "none";
+    const randBar = document.getElementById("randomTestBar");
+    if (randBar) randBar.style.display = "none";
+    document.getElementById("globalTools").style.display = "none";
+    show("analysis", "block");
+    updateTopBack();
+
+    // 総合集計
+    let grandTotal = 0;
+    let grandCorrect = 0;
+    let grandUsedHint = 0;
+    let allUnitsList = [];
+    let allWrongHistory = [];
+
+    Object.keys(subjectStats).forEach(sKey => {
+      const s = subjectStats[sKey];
+      grandTotal += (s.total || 0);
+      grandCorrect += (s.correct || 0);
+      grandUsedHint += (s.usedHint || 0);
+      if (s.wrongHistory && Array.isArray(s.wrongHistory)) {
+        allWrongHistory.push(...s.wrongHistory);
+      }
+      Object.keys(s.byUnit || {}).forEach(uName => {
+        const ud = s.byUnit[uName];
+        if (ud.total > 0) {
+          allUnitsList.push({
+            subj: sKey,
+            name: uName,
+            total: ud.total,
+            correct: ud.correct,
+            noHint: ud.noHintCorrect || 0,
+            rate: Math.round(100 * ud.correct / ud.total)
+          });
+        }
+      });
+    });
+
+    const grandRate = grandTotal > 0 ? Math.round(100 * grandCorrect / grandTotal) : 0;
+    let rankName = "見習い学習者";
+    if (grandTotal >= 100 && grandRate >= 80) rankName = "マスター (Lv.5)";
+    else if (grandTotal >= 60 && grandRate >= 75) rankName = "エキスパート (Lv.4)";
+    else if (grandTotal >= 30) rankName = "アドバンス (Lv.3)";
+    else if (grandTotal >= 10) rankName = "スタンダード (Lv.2)";
+    else if (grandTotal > 0) rankName = "ルーキー (Lv.1)";
+
+    // 得意・苦手単元の算出（挑戦数が2問以上のものを優先）
+    const sortedByRate = allUnitsList.slice().sort((a, b) => b.rate - a.rate || b.total - a.total);
+    const strengths = sortedByRate.filter(u => u.rate >= 70).slice(0, 3);
+    const weaknesses = sortedByRate.slice().reverse().filter(u => u.rate < 80).slice(0, 3);
+
+    // パーソナライズ診断アドバイス生成
+    let diagnosticAdvice = "";
+    if (grandTotal === 0) {
+      diagnosticAdvice = "まだ学習記録がありません。まずは好きな科目の「STEP 1: 基礎確認」や「🎲 ランダムテスト」から始めてみましょう！";
+    } else {
+      const advs = [];
+      if (grandRate >= 80) {
+        advs.push(`総合正答率 ${grandRate}% と極めて優秀な理解度です！`);
+      } else if (grandRate >= 60) {
+        advs.push(`総合正答率 ${grandRate}% で着実に基礎が定着しています。`);
+      } else {
+        advs.push(`まずは各単元の「STEP 1」で基礎概念と公式を再確認しましょう。`);
+      }
+
+      if (grandUsedHint > 0) {
+        advs.push(`ヒントを計 ${grandUsedHint} 回活用し、解法の着眼点を掴めています。次はノーヒントでの正解を増やしていきましょう。`);
+      }
+      if (maxStreak >= 5) {
+        advs.push(`最高 ${maxStreak} 問連続正解の記録を達成！ 集中力が素晴らしいです。`);
+      }
+      if (weaknesses.length > 0) {
+        advs.push(`要復習単元「${weaknesses[0].name}」のまとめテストに再挑戦すると、さらなるスコアアップが期待できます。`);
+      }
+      diagnosticAdvice = advs.join(" ");
+    }
+
+    let h = `
+      <div class="anaHeader">
+        <h2 class="anaTitle">📊 回答分析・学習カルテ</h2>
+        <button class="headerBtn" onclick="window.goHome()">← メインメニュー</button>
+      </div>
+
+      <!-- 概要カードグリッド -->
+      <div class="anaOverviewGrid">
+        <div class="anaCard">
+          <div class="lbl">総合正答率</div>
+          <div class="val" style="color: var(--primary);">${grandRate}%</div>
+          <div class="sub">${grandCorrect} / ${grandTotal} 問</div>
+        </div>
+        <div class="anaCard">
+          <div class="lbl">総回答数</div>
+          <div class="val">${grandTotal}<span style="font-size: 13px; font-weight: normal;">問</span></div>
+          <div class="sub">学習の蓄積</div>
+        </div>
+        <div class="anaCard">
+          <div class="lbl">最高連続正解</div>
+          <div class="val" style="color: #ea580c;">${maxStreak}<span style="font-size: 13px; font-weight: normal;">問</span></div>
+          <div class="sub">現在: ${streak}問連続</div>
+        </div>
+        <div class="anaCard">
+          <div class="lbl">学習ランク</div>
+          <div class="val" style="font-size: 15px; color: #0284c7; padding-top: 4px;">${esc(rankName)}</div>
+          <div class="sub">ヒント利用: ${grandUsedHint}回</div>
+        </div>
+      </div>
+
+      <!-- パーソナライズ学習診断アドバイス -->
+      <div class="feedbackCard">
+        <strong>💡 学習診断フィードバック:</strong><br>
+        ${esc(diagnosticAdvice)}
+      </div>
+
+      <!-- 科目別 習熟度プログレス -->
+      <div class="anaSection">
+        <div class="anaSecTitle">
+          <span>科目別 習熟度</span>
+          <span style="font-size: 12px; color: #94a3b8; font-weight: normal;">全5科目</span>
+        </div>
+    `;
+
+    Object.keys(subjectStats).forEach(sKey => {
+      const s = subjectStats[sKey];
+      const rate = s.total > 0 ? Math.round(100 * s.correct / s.total) : 0;
+      let badgeStyle = "background:#f1f5f9;color:#64748b;";
+      let badgeText = "未着手";
+      if (s.total > 0) {
+        if (rate >= 80) { badgeStyle = "background:#dcfce7;color:#15803d;"; badgeText = "習熟"; }
+        else if (rate >= 60) { badgeStyle = "background:#e0e7ff;color:#4338ca;"; badgeText = "順調"; }
+        else { badgeStyle = "background:#ffedd5;color:#c2410c;"; badgeText = "要復習"; }
+      }
+
+      h += `
+        <div class="subProgItem">
+          <div class="subProgMeta">
+            <span>${SUBJ_INFO[sKey].name} (${s.correct}/${s.total}問)</span>
+            <span style="padding: 1px 6px; border-radius: 4px; font-size: 11px; ${badgeStyle}">${badgeText} ${rate}%</span>
+          </div>
+          <div class="progTrack">
+            <div class="progFill" style="width: ${rate}%; background: ${SUBJ_INFO[sKey].theme};"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    h += `</div>`;
+
+    // --- 教科別・間違え方の傾向分析 ＆ 頻出ミスランキング集計 ---
+    const subjKeys = ['math', 'japanese', 'english', 'science', 'social'];
+    const subjIcons = { math: "📐", japanese: "📖", english: "🔤", science: "🔬", social: "🌍" };
+
+    // 全体の間違い集計
+    let totalAllMistakes = 0;
+    const globalMistakeFreq = {};
+    subjKeys.forEach(sk => {
+      const s = subjectStats[sk];
+      const mp = s.mistakePatterns || {};
+      Object.keys(mp).forEach(k => {
+        const item = mp[k];
+        totalAllMistakes += item.count;
+        globalMistakeFreq[item.label] = (globalMistakeFreq[item.label] || { count: 0, advice: item.advice, subj: sk });
+        globalMistakeFreq[item.label].count += item.count;
+      });
+    });
+
+    const sortedGlobal = Object.keys(globalMistakeFreq)
+      .map(k => ({ label: k, count: globalMistakeFreq[k].count, advice: globalMistakeFreq[k].advice, subj: globalMistakeFreq[k].subj }))
+      .sort((a, b) => b.count - a.count);
+
+    h += `
+      <!-- 教科別・間違え方傾向の分析 ＆ 頻出ミスランキング -->
+      <div class="anaSection">
+        <div class="anaSecTitle">
+          <span>🔍 教科別・間違え方の傾向分析 ＆ 頻出ミスランキング</span>
+          <span style="font-size: 11.5px; color: #94a3b8; font-weight: normal;">どんな間違え方が多いかを可視化</span>
+        </div>
+    `;
+
+    if (totalAllMistakes === 0) {
+      h += `
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; padding: 12px; font-size: 13px; color: #166534; text-align: center; line-height: 1.6;">
+          🎉 <strong>現在、記録された誤答はありません！</strong><br>
+          問題を間違えた際に、AI診断エンジンが「どんな間違え方をしたか」を判定し、ここに教科別の頻出ミス傾向や弱点克服アドバイスが集計表示されます。
+        </div>
+      `;
+    } else {
+      const topGlobal = sortedGlobal[0];
+      const topGlobalPct = Math.round(topGlobal.count / totalAllMistakes * 100);
+      h += `
+        <div style="background: #fff7ed; border: 1px solid #fed7aa; border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 12.5px; color: #9a3412; line-height: 1.55;">
+          <strong>⚡ 全教科を通じて最も多い間違え方:</strong> 【${esc(topGlobal.label)}】 （計 ${topGlobal.count} 回 / 誤答全体の ${topGlobalPct}%）<br>
+          <span style="font-size: 12px; color: #7c2d12;">📌 <strong>全体克服アドバイス:</strong> ${esc(topGlobal.advice)}</span>
+        </div>
+
+        <!-- 教科別グリッド -->
+        <div class="subjMistakeGrid">
+      `;
+
+      subjKeys.forEach(sk => {
+        const s = subjectStats[sk];
+        const mp = s.mistakePatterns || {};
+        const patKeys = Object.keys(mp);
+        const subjMistakeTotal = patKeys.reduce((sum, k) => sum + mp[k].count, 0);
+
+        h += `
+          <div class="subjMistakeCard">
+            <div class="subjMistakeHeader">
+              <span class="subjMistakeTitle">
+                <span>${subjIcons[sk]}</span>
+                <span>${SUBJ_INFO[sk].name}</span>
+              </span>
+              <span class="subjMistakeCount" style="${subjMistakeTotal === 0 ? 'color:#16a34a;background:#f0fdf4;border-color:#dcfce7;' : ''}">
+                ${subjMistakeTotal === 0 ? '誤答 0件' : `誤答 ${subjMistakeTotal}件`}
+              </span>
+            </div>
+        `;
+
+        if (subjMistakeTotal === 0) {
+          h += `
+            <div style="font-size: 12px; color: #16a34a; padding: 10px 0; text-align: center;">
+              ✓ この教科では誤答がありません！ 順調です。
+            </div>
+          `;
+        } else {
+          const sortedPats = patKeys.map(k => mp[k]).sort((a, b) => b.count - a.count);
+          const medals = ['🥇 1位', '🥈 2位', '🥉 3位'];
+
+          sortedPats.slice(0, 3).forEach((p, idx) => {
+            const pct = Math.round(p.count / subjMistakeTotal * 100);
+            h += `
+              <div class="mistakeRankItem">
+                <div class="mistakeRankMeta">
+                  <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%;">${medals[idx] || '・'} ${esc(p.label)}</span>
+                  <span style="color: #dc2626; font-weight: 700;">${p.count}回 (${pct}%)</span>
+                </div>
+                <div class="mistakeProgTrack">
+                  <div class="mistakeProgFill" style="width: ${pct}%;"></div>
+                </div>
+              </div>
+            `;
+          });
+
+          if (sortedPats.length > 0) {
+            h += `
+              <div class="subjMistakeAdvice">
+                <strong>🎯 ${SUBJ_INFO[sk].name}の克服ポイント:</strong><br>
+                ${esc(sortedPats[0].advice)}
+              </div>
+            `;
+          }
+        }
+
+        h += `</div>`; // .subjMistakeCard
+      });
+
+      h += `</div>`; // .subjMistakeGrid
+    }
+
+    h += `</div>`; // .anaSection
+
+    // 得意・苦手単元セクション
+    if (allUnitsList.length > 0) {
+      h += `
+        <div class="anaSection">
+          <div class="anaSecTitle">
+            <span>🎯 重点強化＆得意単元</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #dc2626; margin-bottom: 6px;">⚠️ 要復習単元 TOP 3</div>
+              <div class="focusList">
+      `;
+      if (weaknesses.length === 0) {
+        h += `<div style="font-size: 12px; color: #94a3b8; padding: 6px;">要復習の単元はありません。順調です！</div>`;
+      } else {
+        weaknesses.forEach(u => {
+          h += `
+            <div class="focusItem bad">
+              <div>
+                <div class="focusName">${esc(u.name)}</div>
+                <div style="font-size: 11px; color: #94a3b8;">${SUBJ_INFO[u.subj].name}・正答率: ${u.rate}% (${u.correct}/${u.total}問)</div>
+              </div>
+              <div class="focusRight">
+                <button class="jumpReviewBtn" type="button" onclick="window.jumpToReviewUnit('${esc(u.name)}')">🔥 復習</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+      h += `
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: #16a34a; margin-bottom: 6px;">✨ 得意単元 TOP 3</div>
+              <div class="focusList">
+      `;
+      if (strengths.length === 0) {
+        h += `<div style="font-size: 12px; color: #94a3b8; padding: 6px;">まだ得意単元が登録されていません。</div>`;
+      } else {
+        strengths.forEach(u => {
+          h += `
+            <div class="focusItem good">
+              <div>
+                <div class="focusName">${esc(u.name)}</div>
+                <div style="font-size: 11px; color: #94a3b8;">${SUBJ_INFO[u.subj].name}・正答率: ${u.rate}% (${u.correct}/${u.total}問)</div>
+              </div>
+              <span style="font-size: 11px; font-weight: 700; color: #16a34a;">得意！</span>
+            </div>
+          `;
+        });
+      }
+      h += `
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // 直近のつまずきログ（ミス振り返り）
+    if (allWrongHistory.length > 0) {
+      h += `
+        <div class="anaSection">
+          <div class="anaSecTitle">
+            <span>📝 直近のつまずき振り返り（直近 ${Math.min(10, allWrongHistory.length)} 件）</span>
+          </div>
+          <div class="wrongLogBox">
+      `;
+      allWrongHistory.slice(0, 10).forEach(w => {
+        h += `
+          <div class="wrongLogItem">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px;">
+              <div class="qTitle">[${esc(w.unit || "演習")}] ${esc(w.q)}</div>
+              ${w.time ? `<span style="font-size: 11px; color: #94a3b8; shrink: 0; margin-left: 6px;">${esc(w.time)}</span>` : ''}
+            </div>
+            ${w.mistakeLabel ? `<div style="margin: 3px 0;"><span class="mistakePatternBadge">⚠️ ${esc(w.mistakeLabel)}</span></div>` : ''}
+            <div class="qAns">あなたの回答: <span style="color: #dc2626;">${esc(w.userAns || "無回答")}</span> → 正解: <span style="color: #16a34a;">${esc(w.ans)}</span></div>
+            ${w.mistakeDetail ? `<div style="font-size: 11.5px; color: #991b1b; background: #fff5f5; padding: 4px 6px; border-radius: 4px; margin-top: 3px;"><strong>診断:</strong> ${esc(w.mistakeDetail)}</div>` : ''}
+            ${w.explain ? `<div class="qExp" style="margin-top: 3px;">解説: ${esc(w.explain.slice(0, 90))}...</div>` : ''}
+          </div>
+        `;
+      });
+      h += `
+          </div>
+        </div>
+      `;
+    }
+
+    // 最近の学習履歴へのクイックリンク
+    h += `
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-top: 14px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div>
+          <div style="font-weight: 700; color: #166534; font-size: 13.5px;">📋 全問タイムライン（最近の学習履歴）</div>
+          <div style="font-size: 12px; color: #15803d; margin-top: 2px;">正解・不正解・ヒント使用・間違え方の診断を含めた直近の回答履歴（${recentHistory.length}問）を全問確認できます。</div>
+        </div>
+        <button class="toolBtn" type="button" style="background: #ffffff; color: #16a34a; border-color: #86efac; font-weight: 700;" onclick="window.openRecentHistory()">履歴タイムラインを開く →</button>
+      </div>
+    `;
+
+    // リセットボタン
+    h += `
+      <div style="text-align: center; margin-top: 18px;">
+        <button class="toolBtn" style="color: #ef4444; border-color: #fca5a5;" onclick="window.checkreset()">⚠️ 学習記録を全消去・リセット</button>
+      </div>
+    `;
+
+    document.getElementById("analysis").innerHTML = h;
+  };
+
+  // --- 最近の学習履歴ビュー ＆ フィルター・検索 ---
+  window.openRecentHistory = function() {
+    ["quizCard", "passageBox", "workspace", "answerRow", "buttons", "notes", "unitSubMenu", "analysis"].forEach(id => show(id, "none"));
+    document.querySelectorAll(".menuPane").forEach(p => p.classList.remove("active"));
+    document.getElementById("subjectNav").style.display = "none";
+    const randBar = document.getElementById("randomTestBar");
+    if (randBar) randBar.style.display = "none";
+    document.getElementById("globalTools").style.display = "none";
+    show("historyView", "block");
+    updateTopBack();
+    renderRecentHistoryUI(true);
+  };
+
+  window.setHistFilterResult = function(val) {
+    histFilterResult = val;
+    renderRecentHistoryUI(false);
+  };
+
+  window.setHistFilterSubj = function(val) {
+    histFilterSubj = val;
+    renderRecentHistoryUI(false);
+  };
+
+  window.onHistSearchChange = function(val) {
+    histSearchKeyword = (val || "").trim().toLowerCase();
+    renderRecentHistoryUI(false);
+  };
+
+  window.toggleHistExplain = function(id) {
+    const el = document.getElementById("histExp_" + id);
+    const btn = document.getElementById("histExpBtn_" + id);
+    if (!el) return;
+    const isOpen = el.classList.contains("open");
+    if (isOpen) {
+      el.classList.remove("open");
+      if (btn) btn.textContent = "📖 解説を見る";
+    } else {
+      el.classList.add("open");
+      if (btn) btn.textContent = "✕ 解説を閉じる";
+    }
+  };
+
+  window.clearRecentHistory = function() {
+    if (confirm("最近の学習履歴のみを消去しますか？\n（教科ごとの総合スコアや苦手分析データは保持されます）")) {
+      recentHistory = [];
+      saveData();
+      renderRecentHistoryUI(true);
+    }
+  };
+
+  function renderRecentHistoryUI(resetSearch = true) {
+    const container = document.getElementById("historyView");
+    if (!container) return;
+
+    const totalCount = recentHistory.length;
+    const correctCount = recentHistory.filter(h => h.isCorrect).length;
+    const wrongCount = totalCount - correctCount;
+    const correctRate = totalCount > 0 ? Math.round(100 * correctCount / totalCount) : 0;
+    const hintCount = recentHistory.filter(h => h.usedHint).length;
+
+    // フィルタリング処理
+    let list = recentHistory.slice();
+    if (histFilterResult === 'correct') {
+      list = list.filter(h => h.isCorrect);
+    } else if (histFilterResult === 'wrong') {
+      list = list.filter(h => !h.isCorrect);
+    } else if (histFilterResult === 'hint') {
+      list = list.filter(h => h.usedHint);
+    }
+
+    if (histFilterSubj !== 'all') {
+      list = list.filter(h => h.subject === histFilterSubj);
+    }
+
+    if (histSearchKeyword) {
+      list = list.filter(h => {
+        const text = `${h.subjectName} ${h.unitName} ${h.question} ${h.userAns} ${h.correctAns} ${h.mistakeLabel || ''} ${h.mistakeDetail || ''}`.toLowerCase();
+        return text.includes(histSearchKeyword);
+      });
+    }
+
+    let h = `
+      <div class="histHeader">
+        <div>
+          <h2 class="histTitle"><span>📋</span> 最近の学習履歴</h2>
+          <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
+            直近 ${totalCount} 問の回答履歴と診断・復習ステータス
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px;">
+          <button class="toolBtn" type="button" onclick="window.checkanalysis()" style="font-size: 12px; padding: 4px 10px;">📊 分析レポート</button>
+          <button class="headerBtn" type="button" onclick="window.goHome()">← メインメニュー</button>
+        </div>
+      </div>
+
+      <!-- 履歴サマリー統計 -->
+      <div class="histOverviewGrid">
+        <div class="histStatCard">
+          <div class="lbl">記録された問題数</div>
+          <div class="val">${totalCount}<span style="font-size: 12px; font-weight: normal; color: #64748b;"> 問</span></div>
+        </div>
+        <div class="histStatCard">
+          <div class="lbl">正答率</div>
+          <div class="val" style="color: ${correctRate >= 70 ? '#16a34a' : (correctRate >= 50 ? '#2563eb' : '#dc2626')};">
+            ${correctRate}<span style="font-size: 12px; font-weight: normal;"> %</span>
+          </div>
+        </div>
+        <div class="histStatCard">
+          <div class="lbl">正解 / 不正解</div>
+          <div class="val" style="font-size: 15px; margin-top: 3px;">
+            <span style="color: #16a34a;">${correctCount}</span> / <span style="color: #dc2626;">${wrongCount}</span>
+          </div>
+        </div>
+        <div class="histStatCard">
+          <div class="lbl">ヒント活用</div>
+          <div class="val" style="color: #d97706;">${hintCount}<span style="font-size: 12px; font-weight: normal; color: #64748b;"> 回</span></div>
+        </div>
+      </div>
+
+      <!-- 絞り込み ＆ 検索バー -->
+      <div class="histFilterBar">
+        <div class="histFilterRow">
+          <span class="histFilterLabel">結果別:</span>
+          <button class="histFilterBtn ${histFilterResult === 'all' ? 'active' : ''}" type="button" onclick="window.setHistFilterResult('all')">すべて (${totalCount})</button>
+          <button class="histFilterBtn ${histFilterResult === 'correct' ? 'active' : ''}" type="button" onclick="window.setHistFilterResult('correct')">✓ 正解 (${correctCount})</button>
+          <button class="histFilterBtn ${histFilterResult === 'wrong' ? 'active' : ''}" type="button" onclick="window.setHistFilterResult('wrong')">❌ 不正解 (${wrongCount})</button>
+          <button class="histFilterBtn ${histFilterResult === 'hint' ? 'active' : ''}" type="button" onclick="window.setHistFilterResult('hint')">💡 ヒント使用 (${hintCount})</button>
+        </div>
+        <div class="histFilterRow">
+          <span class="histFilterLabel">教科別:</span>
+          <button class="histFilterBtn ${histFilterSubj === 'all' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('all')">全教科</button>
+          <button class="histFilterBtn ${histFilterSubj === 'math' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('math')">📐 算数・数学</button>
+          <button class="histFilterBtn ${histFilterSubj === 'japanese' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('japanese')">📖 国語</button>
+          <button class="histFilterBtn ${histFilterSubj === 'english' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('english')">🔤 英語</button>
+          <button class="histFilterBtn ${histFilterSubj === 'science' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('science')">🔬 理科</button>
+          <button class="histFilterBtn ${histFilterSubj === 'social' ? 'active' : ''}" type="button" onclick="window.setHistFilterSubj('social')">🌍 社会</button>
+        </div>
+        <div style="margin-top: 4px;">
+          <input type="search" id="histSearchInput" class="histSearchInput" placeholder="🔍 単元名・設問・間違え方・キーワードで履歴を絞り込み..." value="${esc(histSearchKeyword)}" oninput="window.onHistSearchChange(this.value)">
+        </div>
+      </div>
+    `;
+
+    // 履歴リスト
+    if (totalCount === 0) {
+      h += `
+        <div style="background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 30px 20px; text-align: center; color: #64748b;">
+          <div style="font-size: 28px; margin-bottom: 8px;">📋</div>
+          <div style="font-weight: 700; color: #1e293b; font-size: 15px; margin-bottom: 4px;">学習履歴がまだありません</div>
+          <p style="font-size: 12.5px; line-height: 1.6; margin-bottom: 14px;">単元の学習ステップや「🎲 ランダムテスト」を解くと、ここに最新100問の回答記録・診断結果が自動保存されます。</p>
+          <button class="actionBtn" type="button" style="display: inline-block; padding: 8px 16px; font-size: 13px;" onclick="window.goHome()">さっそく問題を解く</button>
+        </div>
+      `;
+    } else if (list.length === 0) {
+      h += `
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 24px; text-align: center; color: #64748b;">
+          <div style="font-size: 22px; margin-bottom: 6px;">🔍</div>
+          <div style="font-weight: 600; color: #334155;">条件に合致する履歴が見つかりませんでした</div>
+          <p style="font-size: 12px; margin-top: 4px;">フィルターを「すべて」に戻すか、検索キーワードを変更してください。</p>
+          <button class="toolBtn" type="button" style="margin-top: 8px; font-size: 12px;" onclick="window.setHistFilterResult('all'); window.setHistFilterSubj('all'); window.onHistSearchChange('');">条件をリセット</button>
+        </div>
+      `;
+    } else {
+      h += `<div class="histCardList">`;
+      list.forEach((item) => {
+        const themeColor = SUBJ_INFO[item.subject] ? SUBJ_INFO[item.subject].theme : "#3b82f6";
+        h += `
+          <div class="histCard ${item.isCorrect ? 'isCorrect' : 'isWrong'}">
+            <div class="histCardHeader">
+              <div class="histCardMetaLeft">
+                <span class="histSubjPill" style="background: ${themeColor};">${esc(item.subjectName)}</span>
+                <span class="histUnitPill">${esc(item.unitName)}</span>
+                <span class="histTimeText">${esc(item.date || '')} ${esc(item.time || '')}</span>
+              </div>
+              <div>
+                ${item.isCorrect
+                  ? `<span class="histBadge histBadgeCorrect">✓ 正解</span>`
+                  : `<span class="histBadge histBadgeWrong">❌ 不正解</span>`
+                }
+                ${item.usedHint ? `<span class="histBadge histBadgeHint">💡 ヒント使用</span>` : ''}
+              </div>
+            </div>
+
+            <div class="histQText">${esc(item.question)}</div>
+
+            <div class="histAnsRow">
+              <div class="histAnsItem">
+                <span style="color: #64748b; font-size: 12px;">あなたの回答:</span>
+                <strong style="color: ${item.isCorrect ? '#16a34a' : '#dc2626'};">${esc(item.userAns)}</strong>
+              </div>
+              <div class="histAnsItem">
+                <span style="color: #64748b; font-size: 12px;">正解:</span>
+                <strong style="color: #16a34a;">${esc(item.correctAns)}</strong>
+              </div>
+            </div>
+
+            ${!item.isCorrect && item.mistakeLabel ? `
+              <div class="histDiagBox">
+                <strong>⚠️ 【間違え方の診断】:</strong> ${esc(item.mistakeLabel)}<br>
+                <span style="font-size: 11.5px; color: #450a0a;">${esc(item.mistakeDetail || '')}</span>
+                ${item.mistakeAdvice ? `<div style="margin-top: 3px; font-size: 11.5px; color: #78350f;">💡 <strong>対策:</strong> ${esc(item.mistakeAdvice)}</div>` : ''}
+              </div>
+            ` : ''}
+
+            <div class="histActionsRow">
+              <div>
+                ${item.explain ? `
+                  <button type="button" class="histExpToggleBtn" id="histExpBtn_${item.id}" onclick="window.toggleHistExplain('${item.id}')">📖 解説を見る</button>
+                ` : ''}
+              </div>
+              <div>
+                <button type="button" class="histJumpBtn" onclick="window.jumpToReviewUnit('${esc(item.unitName)}')">🎯 この単元を復習</button>
+              </div>
+            </div>
+
+            ${item.explain ? `
+              <div id="histExp_${item.id}" class="histExpContent">
+                <strong>【解説】:</strong><br>
+                ${esc(item.explain)}
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      h += `</div>`;
+    }
+
+    if (totalCount > 0) {
+      h += `
+        <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;">
+          <button class="toolBtn" style="color: #ef4444; border-color: #fca5a5; font-size: 12px;" onclick="window.clearRecentHistory()">🗑️ 履歴のみ消去</button>
+          <button class="toolBtn" onclick="window.goHome()">← メインメニューへ</button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = h;
+
+    // フォーカス維持
+    if (!resetSearch) {
+      const inputEl = document.getElementById("histSearchInput");
+      if (inputEl) {
+        inputEl.focus();
+        inputEl.selectionStart = inputEl.selectionEnd = inputEl.value.length;
+      }
+    }
+  }
+
+  window.checkreset = function() {
+    if (confirm("すべての学習記録をリセットしますか？")) {
+      subjectStats = {
+        math: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+        japanese: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+        english: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+        science: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} },
+        social: { total: 0, correct: 0, usedHint: 0, byUnit: {}, wrongHistory: [], mistakePatterns: {} }
+      };
+      recentHistory = [];
+      streak = 0;
+      maxStreak = 0;
+      saveData();
+      alert("記録をリセットしました。");
+      window.goHome();
+    }
+  };
+
+  function saveData() {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({ settings, subjectStats, streak, maxStreak, recentHistory }));
+    } catch(e) {}
+  }
+  function loadData() {
+    try {
+      const raw = localStorage.getItem(SETTINGS_KEY);
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (d.settings) Object.assign(settings, d.settings);
+        if (d.subjectStats) {
+          Object.assign(subjectStats, d.subjectStats);
+          Object.keys(subjectStats).forEach(k => {
+            if (!subjectStats[k].mistakePatterns) subjectStats[k].mistakePatterns = {};
+            if (!subjectStats[k].wrongHistory) subjectStats[k].wrongHistory = [];
+          });
+        }
+        if (Array.isArray(d.recentHistory)) {
+          recentHistory = d.recentHistory;
+        }
+        if (typeof d.streak === 'number') streak = d.streak;
+        if (typeof d.maxStreak === 'number') maxStreak = d.maxStreak;
+      }
+    } catch(e) {}
+    document.getElementById("optExplain").checked = !!settings.explainOnCorrect;
+  }
+  window.setOption = function() {
+    settings.explainOnCorrect = document.getElementById("optExplain").checked;
+    saveData();
+  };
+
+  // --- 初期化 ---
+  function init() {
+    buildMainMenus();
+    loadData();
+    window.goHome();
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+  window.addEventListener("resize", () => {
+    const h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty("--appH", h + "px");
+    fitMemoCanvas();
+  });
+
+})();
+</script>
+</body>
+</html>
