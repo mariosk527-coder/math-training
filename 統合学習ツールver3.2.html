@@ -2057,6 +2057,51 @@ body.notes #notes { display: grid; flex: 1 1 0; min-height: 0; gap: 8px; text-al
   addUnit("info_slides", "information", "junior", "情報：見やすいスライド", "中1-3", "1枚1メッセージ・配色・図表・発表", "info_slides");
   addUnit("info_tables", "information", "junior", "情報：表の使い方", "中1-3", "行列・単位・並べ替え・表とグラフ", "info_tables");
 
+  // --- 全科目の単元を厚くする追加確認問題 ---
+  // 既存問題のコピーや語尾だけの変更は行わず、各単元の説明文から
+  // 「学習範囲」と「確認観点」を問う固有問題を2問ずつ作成する。
+  // 問題文は重複チェックの対象にし、既存問題と同じ場合は追加しない。
+  (function enrichKnowledgePools() {
+    const nonMathUnits = UNIT_CATALOG.filter(unit => unit.subj !== "math");
+    const clean = value => String(value || "")
+      .replace(/,/g, "・")
+      .replace(/\s+/g, " ")
+      .trim();
+    const addUnique = (pool, item) => {
+      if (!pool.some(existing => existing[0] === item[0])) pool.push(item);
+    };
+
+    nonMathUnits.forEach((unit, index) => {
+      const key = unit.steps.step1.key;
+      const correct = clean(unit.desc);
+      if (!key || !correct) return;
+
+      const peers = nonMathUnits
+        .filter(other => other.subj === unit.subj && other.id !== unit.id)
+        .map(other => clean(other.desc))
+        .filter(desc => desc && desc !== correct);
+      const distractors = [];
+      for (let offset = 0; offset < peers.length && distractors.length < 3; offset++) {
+        const candidate = peers[(index + offset) % peers.length];
+        if (!distractors.includes(candidate)) distractors.push(candidate);
+      }
+      while (distractors.length < 3) distractors.push("この単元とは直接関係しない内容");
+      const options = [correct, ...distractors].join(",");
+      const explanation = `「${unit.name}」では、${correct}を確認します。`;
+      const step1Key = `${key}_step1`;
+      const step2Key = `${key}_step2`;
+      if (!Array.isArray(KNOWLEDGE_TUPLES[step1Key])) KNOWLEDGE_TUPLES[step1Key] = [];
+      if (!Array.isArray(KNOWLEDGE_TUPLES[step2Key])) KNOWLEDGE_TUPLES[step2Key] = [];
+
+      addUnique(KNOWLEDGE_TUPLES[step1Key], [
+        `「${unit.name}」で主に学ぶ内容として最も適切なものは？`, options, 1, explanation
+      ]);
+      addUnique(KNOWLEDGE_TUPLES[step2Key], [
+        `「${unit.name}」を学ぶときに確認する中心事項は？`, options, 1, explanation
+      ]);
+    });
+  })();
+
   function buildMemoryQuestions(raw) {
     const pairs = raw.split('|').map(v => v.trim().split(/\s+/)).filter(v => v.length >= 2);
     return pairs.map((p, i) => {
@@ -2646,6 +2691,8 @@ body.notes #notes { display: grid; flex: 1 1 0; min-height: 0; gap: 8px; text-al
 
   // --- 算数・数学 超高効率動的ジェネレーター（全199単元完全実装・重複完全防止） ---
   function runMathEngine(key, lvl) {
+    // 単元キーに空白や改行が混じっても、正しい単元分岐へ到達させる
+    key = String(key || "").trim();
     currentMathKey = key;
     currentChoiceList = [];
     for (let attempt = 0; attempt < 20; attempt++) {
@@ -2661,6 +2708,8 @@ body.notes #notes { display: grid; flex: 1 1 0; min-height: 0; gap: 8px; text-al
   }
 
   function execMathEngineCore(key, lvl) {
+    // カタログから渡される単元キーを正規化する。
+    key = String(key || "").trim();
     currentChoiceList = [];
 
     // --- 小学校 算数 (12単元) ---
@@ -3148,11 +3197,11 @@ body.notes #notes { display: grid; flex: 1 1 0; min-height: 0; gap: 8px; text-al
       explainText = `固有値は λ = ${l1}, ${l2} であり、その和は ${l1} + ${l2} = ${correctAnswer}`;
       document.getElementById("result").textContent = `第 ${questionCount} 問 (大学数学)\n対角行列 [[${l1}, 0], [0, ${l2}]] のすべての固有値の和を求めよ`;
     } else {
-      const A = randRange(10, 40), B = randRange(10, 30);
-      correctAnswer = A + B;
-      hintText = `2つの数を慎重に加算してみましょう。`;
-      explainText = `${A} + ${B} = ${correctAnswer}`;
-      document.getElementById("result").textContent = `第 ${questionCount} 問\n${A} + ${B} = ?`;
+      // 未対応の単元キーを、無関係な足し算として出題しない。
+      correctAnswer = "設定確認";
+      hintText = "この数学単元の問題設定を確認してください。単元を戻って選び直すこともできます。";
+      explainText = `未対応の数学単元キー「${key || "空"}」が指定されました。`;
+      document.getElementById("result").textContent = `第 ${questionCount} 問\nこの単元の問題を準備できませんでした。単元を選び直してください。`;
     }
   }
 
